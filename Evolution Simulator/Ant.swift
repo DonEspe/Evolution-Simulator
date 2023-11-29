@@ -13,10 +13,10 @@ let colors: [Color] = [.blue, .purple, .green, .teal, .brown, .yellow]
 struct  Ant: Identifiable, Equatable {
     var id =  UUID()
     var position: CGPoint
-    var xSpeed: Double = 0 {
+    var speed = CGVector(dx: 0.0, dy: 0.0) {
         didSet {
             let oldHeading = heading
-            heading = (atan2(ySpeed, xSpeed) + .pi / 2)
+            heading = (atan2(speed.dy, speed.dx) + .pi / 2)
             if abs(oldHeading - heading) > .pi {
                 if oldHeading < heading {
                     heading -= 2 * .pi
@@ -26,20 +26,7 @@ struct  Ant: Identifiable, Equatable {
             }
         }
     }
-    var ySpeed: Double = 0 {
-        didSet {
-            let oldHeading = heading
-            heading = (atan2(ySpeed, xSpeed) + .pi / 2)
 
-            if abs(oldHeading - heading) > .pi {
-                if oldHeading < heading {
-                    heading -= 2 * .pi
-                } else {
-                    heading += 2 * .pi
-                }
-            }
-        }
-    }
     var color: Color
 
     var heading: Double = 0
