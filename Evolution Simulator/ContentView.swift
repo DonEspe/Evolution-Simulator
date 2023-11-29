@@ -23,7 +23,7 @@ struct ContentView: View {
             ForEach(colony) { ant in
                 Image(systemName: "ant")
                     .imageScale(.large)
-                    .font(.largeTitle)
+//                    .font(.largeTitle)
                     .rotationEffect(Angle(radians: ant.heading))
                     .foregroundStyle(ant.color)
                     .position(ant.position)
@@ -37,34 +37,47 @@ struct ContentView: View {
         }
         .onAppear {
             if colony.isEmpty {
-                for i in 0...8 {
-                    var ant = Ant(position: CGPoint(x: 10 * Double(i) + buffer, y: 10 * Double(i) + buffer), color: .blue)
-                    ant.speed.dx = 10 + Double.random(in: -10...10)
-                    ant.speed.dy = 10 + Double.random(in: -10...10)
-                    ant.color = colors.randomElement() ?? .blue
-                    colony.append(ant)
-                }
+                colony = populateColony(numberOfAnts: 20)
             }
         }
         .onReceive(timer, perform: { _ in
             for i in 0...colony.count - 1 {
-
-                colony[i].position.x += colony[i].speed.dx
-                colony[i].position.y += colony[i].speed.dy
-
-                if colony[i].position.x > playSize.width + buffer || colony[i].position.x < buffer {
-                    colony[i].speed.dx = -colony[i].speed.dx
-                }
-
-                if colony[i].position.y > playSize.height + buffer || colony[i].position.y < buffer {
-                    colony[i].speed.dy = -colony[i].speed.dy
-                }
+                colony[i] = moveAnt(ant: colony[i])
             }
         })
         .animation(.smooth, value: colony)
     }
 
-    //func moveAnt(ant:
+    func populateColony(numberOfAnts: Int) -> [Ant] {
+        var colony = [Ant]()
+
+        for i in 0...numberOfAnts - 1 {
+            var ant = Ant(position: CGPoint(x: 10 * Double(i) + buffer, y: 10 * Double(i) + buffer), color: .blue)
+            ant.speed.dx = 10 + Double.random(in: -10...10)
+            ant.speed.dy = 10 + Double.random(in: -10...10)
+            ant.color = colors.randomElement() ?? .blue
+            colony.append(ant)
+        }
+
+        return colony
+
+    }
+
+    func moveAnt(ant: Ant) -> Ant {
+        var tempAnt = ant
+        tempAnt.position.x += tempAnt.speed.dx
+        tempAnt.position.y += tempAnt.speed.dy
+
+        if tempAnt.position.x > playSize.width + buffer || tempAnt.position.x < buffer {
+            tempAnt.speed.dx = -tempAnt.speed.dx
+        }
+
+        if tempAnt.position.y > playSize.height + buffer || tempAnt.position.y < buffer {
+            tempAnt.speed.dy = -tempAnt.speed.dy
+        }
+
+        return tempAnt
+    }
 }
 
 #Preview {

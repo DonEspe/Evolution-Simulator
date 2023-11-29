@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-let colors: [Color] = [.blue, .purple, .green, .teal, .brown, .yellow]
+let colors: [Color] = [.blue, .purple, .green, .teal, .brown, .yellow, .cyan, .indigo, .mint, .orange, .red]
 
 struct  Ant: Identifiable, Equatable {
     var id =  UUID()
