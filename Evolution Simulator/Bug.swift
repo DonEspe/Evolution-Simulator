@@ -10,7 +10,7 @@ import SwiftUI
 
 let colors: [Color] = [.blue, .purple, .green, .teal, .brown, .yellow, .cyan, .indigo, .mint, .orange, .red]
 
-struct  Ant: Identifiable, Equatable {
+struct  Bug: Identifiable, Equatable {
     var id =  UUID()
     var position: CGPoint
     var speed = CGVector(dx: 0.0, dy: 0.0) {
