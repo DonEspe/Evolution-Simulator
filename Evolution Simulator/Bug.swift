@@ -8,6 +8,8 @@
 import Foundation
 import SwiftUI
 
+let maxSpeed = CGFloat(8)
+
 let colors: [Color] = [.blue, .purple, .green, .teal, .brown, .yellow, .cyan, .indigo, .mint, .orange, .red]
 
 struct  Bug: Identifiable, Equatable {
@@ -15,6 +17,21 @@ struct  Bug: Identifiable, Equatable {
     var position: CGPoint
     var speed = CGVector(dx: 0.0, dy: 0.0) {
         didSet {
+
+            if speed.dx > maxSpeed {
+                speed.dx = maxSpeed
+            }
+            if speed.dx < -maxSpeed {
+                speed.dx = -maxSpeed
+            }
+
+            if speed.dy > maxSpeed {
+                speed.dy = maxSpeed
+            }
+            if speed.dy < -maxSpeed {
+                speed.dy = -maxSpeed
+            }
+
             let oldHeading = heading
             heading = (atan2(speed.dy, speed.dx) + .pi / 2)
             if abs(oldHeading - heading) > .pi {
@@ -30,4 +47,6 @@ struct  Bug: Identifiable, Equatable {
     var color: Color
 
     var heading: Double = 0
+
+    var changeSpeed = false
 }
