@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FE98E2BA2B1945C20060BF10 /* Leaf.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE98E2B92B1945C20060BF10 /* Leaf.swift */; };
 		FEEEA5872B15667900503680 /* Evolution_SimulatorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEEEA5862B15667900503680 /* Evolution_SimulatorApp.swift */; };
 		FEEEA5892B15667900503680 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEEEA5882B15667900503680 /* ContentView.swift */; };
 		FEEEA58B2B15667B00503680 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FEEEA58A2B15667B00503680 /* Assets.xcassets */; };
@@ -16,6 +17,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		FE98E2B92B1945C20060BF10 /* Leaf.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Leaf.swift; sourceTree = "<group>"; };
 		FEEEA5832B15667900503680 /* Evolution Simulator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Evolution Simulator.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		FEEEA5862B15667900503680 /* Evolution_SimulatorApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Evolution_SimulatorApp.swift; sourceTree = "<group>"; };
 		FEEEA5882B15667900503680 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -58,6 +60,7 @@
 				FEEEA5942B159C1E00503680 /* Bug.swift */,
 				FEEEA5862B15667900503680 /* Evolution_SimulatorApp.swift */,
 				FEEEA5882B15667900503680 /* ContentView.swift */,
+				FE98E2B92B1945C20060BF10 /* Leaf.swift */,
 				FEEEA5962B15AFE100503680 /* CGPoint-Helpers.swift */,
 				FEEEA58A2B15667B00503680 /* Assets.xcassets */,
 				FEEEA58C2B15667B00503680 /* Preview Content */,
@@ -143,6 +146,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FE98E2BA2B1945C20060BF10 /* Leaf.swift in Sources */,
 				FEEEA5972B15AFE100503680 /* CGPoint-Helpers.swift in Sources */,
 				FEEEA5952B159C1F00503680 /* Bug.swift in Sources */,
 				FEEEA5892B15667900503680 /* ContentView.swift in Sources */,
@@ -288,6 +292,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -317,6 +322,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

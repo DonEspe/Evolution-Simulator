@@ -49,4 +49,8 @@ struct  Bug: Identifiable, Equatable {
     var heading: Double = 0
 
     var changeSpeed = false
+
+    var energy: Double = 10
+
+    var moves = 0
 }
