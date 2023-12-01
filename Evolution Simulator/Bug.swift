@@ -32,6 +32,8 @@ struct  Bug: Identifiable, Equatable {
                 speed.dy = -maxSpeed
             }
 
+            totalSpeed = sqrt(speed.dx * speed.dx + speed.dy * speed.dy)
+
             let oldHeading = heading
             heading = (atan2(speed.dy, speed.dx) + .pi / 2)
             if abs(oldHeading - heading) > .pi {
@@ -43,6 +45,8 @@ struct  Bug: Identifiable, Equatable {
             }
         }
     }
+
+    var totalSpeed: CGFloat = 0
 
     var color: Color
 

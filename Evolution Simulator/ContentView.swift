@@ -40,9 +40,6 @@ struct ContentView: View {
                 Spacer(minLength: 2)
                 Text("Moves: \(String(format: "%04d", moves))")
                     .font(.monospaced(.body)())
-                    //                Text(String(format: "%08d", moves))
-//                    .frame(minWidth: 150)
-//                    .fixedSize()
                     .padding()
             }
 
@@ -50,7 +47,6 @@ struct ContentView: View {
                 ForEach(colony) { bug in
                     Image(systemName: "ladybug") //"microbe")
                         .imageScale(.large)
-                    //                    .font(.largeTitle)
                         .rotationEffect(Angle(radians: bug.heading))
                         .foregroundStyle(bug.energy > 1 ? bug.color : .gray)
                         .position(bug.position)
@@ -70,12 +66,10 @@ struct ContentView: View {
                     .position(CGPoint(x: buffer + playSize.width / 2, y: buffer + playSize.height / 2))
 
             }
-            .animation(.smooth, value: colony)
+            .animation(.linear, value: colony)
         }
         .onAppear {
-//            if colony.isEmpty {
-//                colony = populateColony(numberOfBugs: 5)
-//            }
+            // Do stuff when view first appears...
         }
         .onReceive(timer, perform: { _ in
             if colony.isEmpty {
@@ -85,27 +79,33 @@ struct ContentView: View {
                 colony = populateColony(numberOfBugs: 5 + Int.random(in: 0...10))
                 leaves = spawnLeaves(number: 5 + Int.random(in: -4...5))
             }
-            var bugsToRemove = [Int]()
-            guard colony.count > 0 else { return }
 
-            moves += 1
-
-            for i in 0...colony.count - 1 {
-                if let foundLeafIndex = findLeaf(bug: colony[i], leaves: leaves) {
-                    colony[i].energy += leaves[foundLeafIndex].energyLevel
-                    leaves.remove(at: foundLeafIndex)
-                }
-                colony[i] = moveBug(bug: colony[i])
-                if colony[i].energy <= 0 {
-                    bugsToRemove.append(i)
-                }
-                }
-
-            for index in bugsToRemove.sorted(by: >) {
-                colony.remove(at: index)
-            }
+            performMoves()
         })
 
+    }
+
+    func performMoves() {
+        var bugsToRemove = [Int]()
+
+        guard colony.count > 0 else { return }
+
+        moves += 1
+
+        for i in 0...colony.count - 1 {
+            if let foundLeafIndex = findLeaf(bug: colony[i], leaves: leaves) {
+                colony[i].energy += leaves[foundLeafIndex].energyLevel
+                leaves.remove(at: foundLeafIndex)
+            }
+           colony[i] = moveBug(bug: colony[i])
+            if colony[i].energy <= 0 {
+                bugsToRemove.append(i)
+            }
+        }
+
+        for index in bugsToRemove.sorted(by: >) {
+            colony.remove(at: index)
+        }
     }
 
     func populateColony(numberOfBugs: Int) -> [Bug] {
@@ -135,14 +135,13 @@ struct ContentView: View {
     }
 
     func testCollision(bug: Bug, colony: [Bug]) -> Bool {
-//        let bugVelocity = abs(bug.speed.dx) + abs(bug.speed.dy)
 
         for target in colony {
             guard target.id != bug.id else {
                 continue
             }
 
-            if distance(target.position, bug.position) < 12 {
+            if distance(target.position, bug.position) < 8 + bug.totalSpeed {
                 return true
             }
         }
@@ -152,7 +151,7 @@ struct ContentView: View {
 
     func findLeaf(bug: Bug, leaves: [Leaf]) -> Int? {
         for (index, leaf) in leaves.enumerated() {
-            if distance(bug.position, leaf.position) < 12 {
+            if distance(bug.position, leaf.position) < 8 + bug.totalSpeed {
                 return index
             }
         }
@@ -169,16 +168,12 @@ struct ContentView: View {
     func moveBug(bug: Bug) -> Bug {
         var tempBug = bug
 
-        tempBug.energy -= 0.1
+        tempBug.energy -=  bug.totalSpeed / 100 //0.1
         tempBug.moves += 1
 
         if tempBug.moves > highestMoves {
             highestMoves = tempBug.moves
         }
-
-//        if tempBug.energy < 0.5 {
-//            tempBug.color = .gray
-//        }
 
         if testCollision(bug: bug, colony: colony) {
             tempBug.speed.dx = -tempBug.speed.dx
