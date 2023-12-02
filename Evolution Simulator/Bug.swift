@@ -10,7 +10,7 @@ import SwiftUI
 
 let maxSpeed = CGFloat(8)
 
-let colors: [Color] = [.blue, .purple, .green, .teal, .brown, .yellow, .cyan, .indigo, .mint, .orange, .red]
+let colors: [Color] = [.blue, .purple, .teal, .yellow, .cyan, .indigo, .mint, .orange, .red]
 
 struct  Bug: Identifiable, Equatable {
     var id =  UUID()
@@ -57,4 +57,6 @@ struct  Bug: Identifiable, Equatable {
     var energy: Double = 10
 
     var moves = 0
+
+    var leavesCollected = 0
 }

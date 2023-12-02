@@ -15,12 +15,14 @@ struct ContentView: View {
 
     @State var colony = [Bug]()
     @State var leaves = [Leaf]()
+    @State var records = [GenerationTracking]()
+
     @State var highestMoves = 0
     @State var generation = 0
     @State var moves = 0
 
     var body: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .center) {
             HStack {
                 Text("Generation: \(generation)")
                     .font(.monospaced(.body)())
@@ -30,6 +32,7 @@ struct ContentView: View {
                     .font(.monospaced(.body)())
                     .padding()
             }
+
             HStack {
                 Text("Bugs: \(colony.count)")
                     .font(.monospaced(.body)())
@@ -67,6 +70,42 @@ struct ContentView: View {
 
             }
             .animation(.linear, value: colony)
+            Spacer()
+                .frame(height: 40)
+            VStack(alignment: .center) {
+                Text("Records:")
+                    .font(.title)
+                    .fontWeight(.bold)
+                List(records) { record in
+                    VStack {
+                        HStack {
+                            Spacer()
+                            Text("Generation: \(record.generation)")
+                                .fontWeight(.bold)
+                            Spacer()
+                        }
+                        HStack {
+                            Text("Total bugs: \(record.totalBugs)")
+                            Spacer()
+                            Text("Total leaves: \(record.totalLeaves)")
+                        }
+                        Text("Bugs that ate leaves: \(record.bugsCollectedLeaves)")
+                        HStack {
+                            Text("Leaves eaten: \(record.leavesEaten)")
+                            Spacer()
+                            Text("Least moves: \(record.minMoves )")
+                        }
+                        Text("Total moves: \(record.totalMoves)")
+                        HStack {
+                            Text("Average moves: \(record.averageMoves)")
+                            Spacer()
+                            Text("Top moves: \(record.highestMoves)")
+                        }
+
+                    }
+                    .font(.monospaced(.body)())
+                }
+            }
         }
         .onAppear {
             // Do stuff when view first appears...
@@ -75,9 +114,13 @@ struct ContentView: View {
             if colony.isEmpty {
                 moves = 0
                 generation += 1
-                print("Highest moves: ", highestMoves, "after ", generation, " generations.")
+//                print("tracking: ", records)
+                records.append(GenerationTracking(generation: generation))
                 colony = populateColony(numberOfBugs: 5 + Int.random(in: 0...10))
                 leaves = spawnLeaves(number: 5 + Int.random(in: -4...5))
+
+                records[generation - 1].totalLeaves = leaves.count
+                records[generation - 1].totalBugs = colony.count
             }
 
             performMoves()
@@ -92,14 +135,24 @@ struct ContentView: View {
 
         moves += 1
 
+        records[generation - 1].highestMoves += 1
+
         for i in 0...colony.count - 1 {
             if let foundLeafIndex = findLeaf(bug: colony[i], leaves: leaves) {
+                records[generation - 1].leavesEaten += 1
                 colony[i].energy += leaves[foundLeafIndex].energyLevel
+                colony[i].leavesCollected += 1
+                if colony[i].leavesCollected == 1 {
+                    records[generation - 1].bugsCollectedLeaves += 1
+                }
                 leaves.remove(at: foundLeafIndex)
             }
            colony[i] = moveBug(bug: colony[i])
             if colony[i].energy <= 0 {
                 bugsToRemove.append(i)
+                if colony[i].moves < records[generation - 1].minMoves || records[generation - 1].minMoves == 0 {
+                    records[generation - 1].minMoves = colony[i].moves
+                }
             }
         }
 
@@ -168,8 +221,9 @@ struct ContentView: View {
     func moveBug(bug: Bug) -> Bug {
         var tempBug = bug
 
-        tempBug.energy -=  bug.totalSpeed / 100 //0.1
+        tempBug.energy -=  0.05 + bug.totalSpeed / 100 //0.1
         tempBug.moves += 1
+        records[generation - 1].totalMoves += 1
 
         if tempBug.moves > highestMoves {
             highestMoves = tempBug.moves
