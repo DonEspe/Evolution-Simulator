@@ -54,7 +54,15 @@ struct  Bug: Identifiable, Equatable {
 
     var changeSpeed = false
 
-    var energy: Double = 10
+    var energy: Double = 10 {
+        didSet {
+            if energy > topEnergy {
+                topEnergy = energy
+            }
+        }
+    }
+
+    var topEnergy: Double = 10
 
     var moves = 0
 

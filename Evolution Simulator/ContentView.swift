@@ -46,13 +46,26 @@ struct ContentView: View {
                     .padding()
             }
 
-            ZStack {
+            ZStack(alignment: .leading) {
                 ForEach(colony) { bug in
+                    Rectangle()
+                        .frame(width: 22, height: 4)
+                        .position(CGPoint(x: bug.position.x, y: bug.position.y - 18))
+                        .foregroundColor(bug.energy < 5 ? .red : .blue)
+
+                    let adjustment = ((20 / bug.topEnergy) * bug.energy)
+
+                    Rectangle()
+                        .frame(width: 20 - adjustment, height: 2)
+                        .position(CGPoint(x: bug.position.x + ( adjustment) / 2, y: bug.position.y - 18))
+                        .foregroundColor(.black)
+
                     Image(systemName: "ladybug") //"microbe")
                         .imageScale(.large)
                         .rotationEffect(Angle(radians: bug.heading))
                         .foregroundStyle(bug.energy > 1 ? bug.color : .gray)
                         .position(bug.position)
+
                 }
 
                 ForEach(leaves) { leaf in
@@ -89,12 +102,12 @@ struct ContentView: View {
                             Spacer()
                             Text("Total leaves: \(record.totalLeaves)")
                         }
-                        Text("Bugs that ate leaves: \(record.bugsCollectedLeaves)")
                         HStack {
                             Text("Leaves eaten: \(record.leavesEaten)")
                             Spacer()
                             Text("Least moves: \(record.minMoves )")
                         }
+                        Text("Bugs that ate leaves: \(record.bugsCollectedLeaves)")
                         Text("Total moves: \(record.totalMoves)")
                         HStack {
                             Text("Average moves: \(record.averageMoves)")
