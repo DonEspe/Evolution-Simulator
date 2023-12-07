@@ -14,6 +14,8 @@ let colors: [Color] = [.blue, .purple, .teal, .yellow, .cyan, .indigo, .mint, .o
 
 struct  Bug: Identifiable, Equatable {
     var id =  UUID()
+    var sightRange:CGFloat = 50.0
+
     var position: CGPoint
     var speed = CGVector(dx: 0.0, dy: 0.0) {
         didSet {
@@ -52,8 +54,6 @@ struct  Bug: Identifiable, Equatable {
 
     var heading: Double = 0
 
-    var changeSpeed = false
-
     var energy: Double = 10 {
         didSet {
             if energy > topEnergy {
@@ -67,4 +67,7 @@ struct  Bug: Identifiable, Equatable {
     var moves = 0
 
     var leavesCollected = 0
+
+    var changeSpeed = false
+    var moveTowardLeaf = true
 }

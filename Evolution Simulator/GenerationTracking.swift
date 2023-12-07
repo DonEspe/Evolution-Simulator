@@ -21,6 +21,9 @@ struct GenerationTracking: Identifiable {
     var minMoves = 0
     var leavesEaten = 0
     var averageMoves = 0
+    var lastCouldSee = false
 
     var bugsCollectedLeaves = 0
+    var sightedCollectedLeaves = 0
+    var blindCollectedLeaves = 0
 }

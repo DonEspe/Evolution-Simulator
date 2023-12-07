@@ -66,6 +66,14 @@ struct ContentView: View {
                         .foregroundStyle(bug.energy > 1 ? bug.color : .gray)
                         .position(bug.position)
 
+                    if bug.moveTowardLeaf {
+                        Circle()
+                            .stroke(lineWidth: 2.0)
+                            .frame(width: 8, height: 8)
+                            .position(bug.position)
+                            .foregroundStyle(.green)
+                    }
+
                 }
 
                 ForEach(leaves) { leaf in
@@ -90,33 +98,7 @@ struct ContentView: View {
                     .font(.title)
                     .fontWeight(.bold)
                 List(records) { record in
-                    VStack {
-                        HStack {
-                            Spacer()
-                            Text("Generation: \(record.generation)")
-                                .fontWeight(.bold)
-                            Spacer()
-                        }
-                        HStack {
-                            Text("Total bugs: \(record.totalBugs)")
-                            Spacer()
-                            Text("Total leaves: \(record.totalLeaves)")
-                        }
-                        HStack {
-                            Text("Leaves eaten: \(record.leavesEaten)")
-                            Spacer()
-                            Text("Least moves: \(record.minMoves )")
-                        }
-                        Text("Bugs that ate leaves: \(record.bugsCollectedLeaves)")
-                        Text("Total moves: \(record.totalMoves)")
-                        HStack {
-                            Text("Average moves: \(record.averageMoves)")
-                            Spacer()
-                            Text("Top moves: \(record.highestMoves)")
-                        }
-
-                    }
-                    .font(.monospaced(.body)())
+                    GenerationView(record: record)
                 }
             }
         }
@@ -155,6 +137,13 @@ struct ContentView: View {
                 records[generation - 1].leavesEaten += 1
                 colony[i].energy += leaves[foundLeafIndex].energyLevel
                 colony[i].leavesCollected += 1
+
+                if colony[i].moveTowardLeaf {
+                    records[generation - 1].sightedCollectedLeaves += 1
+                } else {
+                    records[generation - 1].blindCollectedLeaves += 1
+                }
+
                 if colony[i].leavesCollected == 1 {
                     records[generation - 1].bugsCollectedLeaves += 1
                 }
@@ -170,6 +159,9 @@ struct ContentView: View {
         }
 
         for index in bugsToRemove.sorted(by: >) {
+            if colony.count == 1 {
+                records[generation - 1].lastCouldSee = colony[index].moveTowardLeaf
+            }
             colony.remove(at: index)
         }
     }
@@ -183,6 +175,7 @@ struct ContentView: View {
             bug.speed.dy = 5 + Double.random(in: -5...5)
             bug.color = colors.randomElement() ?? .blue
             bug.changeSpeed = Bool.random()
+            bug.moveTowardLeaf = Bool.random()
             colony.append(bug)
         }
 
@@ -215,9 +208,9 @@ struct ContentView: View {
         return false
     }
 
-    func findLeaf(bug: Bug, leaves: [Leaf]) -> Int? {
+    func findLeaf(bug: Bug, leaves: [Leaf], inRange: CGFloat = 8) -> Int? {
         for (index, leaf) in leaves.enumerated() {
-            if distance(bug.position, leaf.position) < 8 + bug.totalSpeed {
+            if distance(bug.position, leaf.position) < inRange + bug.totalSpeed {
                 return index
             }
         }
@@ -234,7 +227,23 @@ struct ContentView: View {
     func moveBug(bug: Bug) -> Bug {
         var tempBug = bug
 
-        tempBug.energy -=  0.05 + bug.totalSpeed / 100 //0.1
+        if bug.moveTowardLeaf {
+            if let foundLeaf = findLeaf(bug: bug, leaves: leaves, inRange: bug.sightRange) {
+                let deltaX = leaves[foundLeaf].position.x - bug.position.x
+                let deltaY = leaves[foundLeaf].position.y - bug.position.y
+
+                let angle = atan2(deltaY, deltaX)
+
+                let newDx = bug.totalSpeed * cos(angle)
+                let newDy = bug.totalSpeed * sin(angle)
+
+                tempBug.speed = CGVector(dx: newDx, dy: newDy)
+            }
+        }
+
+        //TODO: Add ability to move toward leaves if in certain range...
+
+        tempBug.energy -=  0.05 + bug.totalSpeed / 100
         tempBug.moves += 1
         records[generation - 1].totalMoves += 1
 
@@ -287,4 +296,50 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+}
+
+struct GenerationView: View {
+    var record: GenerationTracking
+
+    var body: some View {
+
+        VStack {
+            HStack {
+                Spacer()
+                Text("Generation: \(record.generation)")
+                    .fontWeight(.bold)
+                Spacer()
+            }
+            HStack {
+                Text("Total bugs: \(record.totalBugs)")
+                Spacer()
+                Text("Total leaves: \(record.totalLeaves)")
+            }
+            HStack {
+                Text("Leaves eaten: \(record.leavesEaten)")
+                Spacer()
+                Text("Least moves: \(record.minMoves )")
+            }
+
+            HStack {
+                Text("Blind ate: \(record.blindCollectedLeaves)")
+                Spacer()
+                Text("Sighted ate: \(record.sightedCollectedLeaves)")
+            }
+            HStack {
+                Text("Bugs that ate: \(record.bugsCollectedLeaves)")
+                if record.lastCouldSee {
+                    Text("Last could see")
+                }
+            }
+            Text("Total moves: \(record.totalMoves)")
+            HStack {
+                Text("Average moves: \(record.averageMoves)")
+                Spacer()
+                Text("Top moves: \(record.highestMoves)")
+            }
+            
+        }
+        .font(.monospaced(.body)())
+    }
 }
