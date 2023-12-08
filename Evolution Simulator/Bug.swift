@@ -14,7 +14,7 @@ let colors: [Color] = [.blue, .purple, .teal, .yellow, .cyan, .indigo, .mint, .o
 
 struct  Bug: Identifiable, Equatable {
     var id =  UUID()
-    var sightRange:CGFloat = 50.0
+    var sightRange:CGFloat = 120.0
 
     var position: CGPoint
     var speed = CGVector(dx: 0.0, dy: 0.0) {
@@ -70,4 +70,5 @@ struct  Bug: Identifiable, Equatable {
 
     var changeSpeed = false
     var moveTowardLeaf = true
+    var findClosest = false
 }

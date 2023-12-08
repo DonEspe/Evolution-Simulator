@@ -68,10 +68,10 @@ struct ContentView: View {
 
                     if bug.moveTowardLeaf {
                         Circle()
-                            .stroke(lineWidth: 2.0)
+                            .stroke(lineWidth: 3.0)
                             .frame(width: 8, height: 8)
                             .position(bug.position)
-                            .foregroundStyle(.green)
+                            .foregroundStyle(bug.findClosest ? .green : .blue)
                     }
 
                 }
@@ -111,7 +111,8 @@ struct ContentView: View {
                 generation += 1
 //                print("tracking: ", records)
                 records.append(GenerationTracking(generation: generation))
-                colony = populateColony(numberOfBugs: 5 + Int.random(in: 0...10))
+//                colony = populateColony(numberOfBugs: 5 + Int.random(in: 0...10))
+                colony = populateColony(numberOfBugs: 3)
                 leaves = spawnLeaves(number: 5 + Int.random(in: -4...5))
 
                 records[generation - 1].totalLeaves = leaves.count
@@ -176,6 +177,7 @@ struct ContentView: View {
             bug.color = colors.randomElement() ?? .blue
             bug.changeSpeed = Bool.random()
             bug.moveTowardLeaf = Bool.random()
+            bug.findClosest = Bool.random()
             colony.append(bug)
         }
 
@@ -209,13 +211,33 @@ struct ContentView: View {
     }
 
     func findLeaf(bug: Bug, leaves: [Leaf], inRange: CGFloat = 8) -> Int? {
+        //find first
+        var leavesSeen = [(number: Int, distance: CGFloat)]()
         for (index, leaf) in leaves.enumerated() {
             if distance(bug.position, leaf.position) < inRange + bug.totalSpeed {
-                return index
+                leavesSeen.append((number: index, distance(bug.position, leaf.position)))
+                if bug.findClosest {
+                    return index
+                }
             }
         }
 
-        return nil
+        if leavesSeen.isEmpty {
+
+            return nil
+
+        } else {
+            var shortestDistance = CGFloat.greatestFiniteMagnitude
+            var useLeaf = 0
+            for leaf in leavesSeen {
+                if leaf.distance < shortestDistance {
+                    shortestDistance = leaf.distance
+                    useLeaf = leaf.number
+                }
+            }
+
+            return useLeaf
+        }
     }
 
     func distance(_ point1: CGPoint, _ point2: CGPoint) -> Double {
