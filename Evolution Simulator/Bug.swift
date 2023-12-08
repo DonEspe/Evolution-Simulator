@@ -52,7 +52,17 @@ struct  Bug: Identifiable, Equatable {
 
     var color: Color
 
-    var heading: Double = 0
+    var heading: Double = 0 //{
+//        didSet {
+//            if heading < 0 {
+//                heading += 2 * .pi
+//            }
+//
+//            if heading > 2 * .pi {
+//                heading -= 2 * .pi
+//            }
+//        }
+//    }
 
     var energy: Double = 10 {
         didSet {

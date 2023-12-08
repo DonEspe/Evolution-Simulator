@@ -110,9 +110,42 @@ struct ContentView: View {
                 if showingPopover, let showBug = findBug(withId: tappedBug) {
                     let displayBug = colony[showBug]
                     VStack {
-                        Text("Bug color: \(displayBug.color.description)")
-                        Text("Bug Speed: \(displayBug.totalSpeed)")
-                        Text("pressed bug")
+                        Text("Clicked on:")
+                            .font(.title)
+                            .fontWeight(.bold)
+
+                        Text("Color: \(displayBug.color.description.capitalized)")
+                        HStack {
+                            Text("Energy: \((String(format: "%0.2f", displayBug.energy)))")
+                            Text("Top Energy: \(String(format: "%0.2f", displayBug.topEnergy))")
+                        }
+                        HStack {
+                            Text("Speed: \((String(format: "%0.2f", displayBug.totalSpeed)))")
+                            Text("Speed Vector: \((String(format: "%0.2f", displayBug.speed.dx))), \((String(format: "%0.2f",displayBug.speed.dy)))")
+                        }
+                        HStack {
+                            Text("Heading: \((String(format: "%0.2f", displayBug.heading * 180 / .pi)))")
+                            Text("Sight range: \((String(format: "%0.1f", displayBug.sightRange)))")
+                        }
+
+                        HStack {
+                            if displayBug.moveTowardLeaf && !displayBug.findClosest{
+                                //                            Text("Bug Moves Toward Leaf: \(displayBug.moveTowardLeaf.description)")
+                                Text("Bug Moves Toward Leaf")
+                            } else {
+                                Text("Bug Finds Closest Leaf")
+                            }
+                            if displayBug.changeSpeed {
+                                Text("Bug can change speed")
+                            }
+                        }
+//                        Text("Bug Finds Closest Leaf: \(displayBug.findClosest.description)")
+
+//                        Text("Bug Changes Speed: \(displayBug.changeSpeed.description)")
+                        Text("Leaves Collected: \(displayBug.leavesCollected)")
+
+                        Text("Moves: \(displayBug.moves)")
+                        Spacer()
                     }
                     .onTapGesture {
                         showingPopover = false
@@ -210,7 +243,7 @@ struct ContentView: View {
     func populateColony(numberOfBugs: Int) -> [Bug] {
         var colony = [Bug]()
 
-        for i in 0...numberOfBugs - 1 {
+        for _ in 0...numberOfBugs - 1 {
             var bugPosition = CGPoint(x: CGFloat.random(in: buffer...(playSize.width - buffer)),
                                       y: CGFloat.random(in: buffer...(playSize.height - buffer)))
 
