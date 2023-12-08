@@ -21,30 +21,40 @@ struct ContentView: View {
     @State var generation = 0
     @State var moves = 0
 
+    @State var paused = false
+    @State var showingPopover = false
+    @State var tappedBug = UUID()
+
     var body: some View {
         VStack(alignment: .center) {
             HStack {
                 Text("Generation: \(generation)")
                     .font(.monospaced(.body)())
-                    .padding()
+                    .padding(.horizontal)
                 Spacer()
                 Text("Highest: \(highestMoves)")
                     .font(.monospaced(.body)())
-                    .padding()
+                    .padding(.horizontal)
             }
 
             HStack {
                 Text("Bugs: \(colony.count)")
                     .font(.monospaced(.body)())
-                    .padding()
+                    .padding(.horizontal)
                 Spacer()
                 Text("Leaves: \(leaves.count)")
                     .font(.monospaced(.body)())
                 Spacer(minLength: 2)
                 Text("Moves: \(String(format: "%04d", moves))")
                     .font(.monospaced(.body)())
-                    .padding()
+                    .padding(.horizontal)
             }
+
+            Button("Pause") {
+                paused.toggle()
+            }
+            .font(.title)
+            .foregroundColor(paused ? .gray : .blue)
 
             ZStack(alignment: .leading) {
                 ForEach(colony) { bug in
@@ -63,17 +73,19 @@ struct ContentView: View {
                     Image(systemName: "ladybug") //"microbe")
                         .imageScale(.large)
                         .rotationEffect(Angle(radians: bug.heading))
-                        .foregroundStyle(bug.energy > 1 ? bug.color : .gray)
+                        .foregroundStyle(bug.energy > 2 ? bug.color : .gray)
                         .position(bug.position)
+                        .onTapGesture { pressed in
+//                            print("tapped \(bug.color)")
+                            tappedBug = bug.id
+                            showingPopover = true
+                        }
 
-                    if bug.moveTowardLeaf {
-                        Circle()
-                            .stroke(lineWidth: 3.0)
-                            .frame(width: 8, height: 8)
-                            .position(bug.position)
-                            .foregroundStyle(bug.findClosest ? .green : .blue)
-                    }
-
+                    Circle()
+                        .stroke(lineWidth: 3.0)
+                        .frame(width: 8, height: 8)
+                        .position(bug.position)
+                        .foregroundStyle(bug.findClosest ? .green : .blue)
                 }
 
                 ForEach(leaves) { leaf in
@@ -91,28 +103,46 @@ struct ContentView: View {
 
             }
             .animation(.linear, value: colony)
+
             Spacer()
                 .frame(height: 40)
-            VStack(alignment: .center) {
-                Text("Records:")
-                    .font(.title)
-                    .fontWeight(.bold)
-                List(records) { record in
-                    GenerationView(record: record)
+
+                if showingPopover, let showBug = findBug(withId: tappedBug) {
+                    let displayBug = colony[showBug]
+                    VStack {
+                        Text("Bug color: \(displayBug.color.description)")
+                        Text("Bug Speed: \(displayBug.totalSpeed)")
+                        Text("pressed bug")
+                    }
+                    .onTapGesture {
+                        showingPopover = false
+                    }
+                } else {
+                    VStack(alignment: .center) {
+                        Text("Records:")
+                            .font(.title)
+                            .fontWeight(.bold)
+                        List(records) { record in
+                            GenerationView(record: record)
+                        }
+                    }
                 }
-            }
         }
         .onAppear {
             // Do stuff when view first appears...
         }
         .onReceive(timer, perform: { _ in
+            if paused {
+                return
+            }
+
             if colony.isEmpty {
                 moves = 0
                 generation += 1
 //                print("tracking: ", records)
                 records.append(GenerationTracking(generation: generation))
-//                colony = populateColony(numberOfBugs: 5 + Int.random(in: 0...10))
-                colony = populateColony(numberOfBugs: 3)
+                colony = populateColony(numberOfBugs: 5 + Int.random(in: 0...10))
+//                colony = populateColony(numberOfBugs: 3)
                 leaves = spawnLeaves(number: 5 + Int.random(in: -4...5))
 
                 records[generation - 1].totalLeaves = leaves.count
@@ -122,6 +152,16 @@ struct ContentView: View {
             performMoves()
         })
 
+    }
+
+    func findBug(withId: UUID) -> Int? {
+        for (index, bug) in colony.enumerated() {
+            if bug.id == withId {
+                return index
+            }
+        }
+
+        return nil
     }
 
     func performMoves() {
@@ -171,7 +211,17 @@ struct ContentView: View {
         var colony = [Bug]()
 
         for i in 0...numberOfBugs - 1 {
-            var bug = Bug(position: CGPoint(x: 20 * Double(i) + buffer, y: 20 * Double(i) + buffer), color: .blue)
+            var bugPosition = CGPoint(x: CGFloat.random(in: buffer...(playSize.width - buffer)),
+                                      y: CGFloat.random(in: buffer...(playSize.height - buffer)))
+
+            for checkBug in colony {
+                while checkBug.position.distance(from: bugPosition) < 20 {
+                    bugPosition = CGPoint(x: CGFloat.random(in: buffer...(playSize.width - buffer)),
+                                          y: CGFloat.random(in: buffer...(playSize.height - buffer)))
+                }
+            }
+//            var bug = Bug(position: CGPoint(x: 20 * Double(i) + buffer, y: 20 * Double(i) + buffer), color: .blue)
+            var bug = Bug(position: bugPosition, color: .blue)
             bug.speed.dx = 5 + Double.random(in: -5...5)
             bug.speed.dy = 5 + Double.random(in: -5...5)
             bug.color = colors.randomElement() ?? .blue
