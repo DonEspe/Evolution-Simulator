@@ -181,9 +181,9 @@ struct ContentView: View {
                 generation += 1
 //                print("tracking: ", records)
                 records.append(GenerationTracking(generation: generation))
-//                colony = populateColony(numberOfBugs: 5 + Int.random(in: 0...10))
-                colony = populateColony(numberOfBugs: 3)
-                leaves = spawnLeaves(number: 5 + Int.random(in: -4...5))
+                colony = populateColony(numberOfBugs: 5 + Int.random(in: 0...10))
+//                colony = populateColony(numberOfBugs: 3)
+                leaves = spawnLeaves(number: 5 + Int.random(in: -4...5) + (colony.count / 2))
 
                 records[generation - 1].totalLeaves = leaves.count
                 records[generation - 1].totalBugs = numberAlive() //colony.count
@@ -259,7 +259,7 @@ struct ContentView: View {
 
             for checkBug in colony {
                 var count = 0
-                while checkBug.position.distance(from: bugPosition) < 20 && count <= 10 {
+                while checkBug.position.distance(from: bugPosition) < 20 && count <= 20 {
                     count += 1
                     bugPosition = CGPoint(x: CGFloat.random(in: buffer...(playSize.width - buffer)),
                                           y: CGFloat.random(in: buffer...(playSize.height - buffer)))
@@ -298,7 +298,7 @@ struct ContentView: View {
                 continue
             }
 
-            if distance(target.position, bug.position) < 8 + bug.totalSpeed && target.alive{
+            if distance(target.position, bug.position) < 15 + bug.totalSpeed && target.alive{
                 return true
             }
         }
@@ -357,21 +357,6 @@ struct ContentView: View {
     func moveBug(bug: Bug) -> Bug {
         var tempBug = bug
 
-        if bug.moveTowardLeaf {
-            if let foundLeaf = findLeaf(bug: bug, leaves: leaves, inRange: bug.sightRange) {
-//                let deltaX = leaves[foundLeaf].position.x - bug.position.x
-//                let deltaY = leaves[foundLeaf].position.y - bug.position.y
-//
-//                let angle = atan2(deltaY, deltaX)
-                let angle = angleBetween(point1: leaves[foundLeaf].position, point2: bug.position)
-
-                let newDx = bug.totalSpeed * cos(angle)
-                let newDy = bug.totalSpeed * sin(angle)
-
-                tempBug.speed = CGVector(dx: newDx, dy: newDy)
-            }
-        }
-
         tempBug.energy -=  0.05 + bug.totalSpeed / 100
         tempBug.moves += 1
         records[generation - 1].totalMoves += 1
@@ -388,6 +373,21 @@ struct ContentView: View {
             tempBug.position.y += tempBug.speed.dy
 
             return tempBug
+        }
+
+        if bug.moveTowardLeaf {
+            if let foundLeaf = findLeaf(bug: bug, leaves: leaves, inRange: bug.sightRange) {
+//                let deltaX = leaves[foundLeaf].position.x - bug.position.x
+//                let deltaY = leaves[foundLeaf].position.y - bug.position.y
+//
+//                let angle = atan2(deltaY, deltaX)
+                let angle = angleBetween(point1: leaves[foundLeaf].position, point2: bug.position)
+
+                let newDx = bug.totalSpeed * cos(angle)
+                let newDy = bug.totalSpeed * sin(angle)
+
+                tempBug.speed = CGVector(dx: newDx, dy: newDy)
+            }
         }
 
         if bug.changeSpeed {
