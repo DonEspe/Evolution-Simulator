@@ -38,7 +38,8 @@ struct ContentView: View {
             }
 
             HStack {
-                Text("Bugs: \(colony.count)")
+//                Text("Bugs: \(colony.count)")
+                Text("Bugs: \(numberAlive())")
                     .font(.monospaced(.body)())
                     .padding(.horizontal)
                 Spacer()
@@ -58,34 +59,36 @@ struct ContentView: View {
 
             ZStack(alignment: .leading) {
                 ForEach(colony) { bug in
-                    Rectangle()
-                        .frame(width: 22, height: 4)
-                        .position(CGPoint(x: bug.position.x, y: bug.position.y - 18))
-                        .foregroundColor(bug.energy < 5 ? .red : .blue)
-
-                    let adjustment = ((20 / bug.topEnergy) * bug.energy)
-
-                    Rectangle()
-                        .frame(width: 20 - adjustment, height: 2)
-                        .position(CGPoint(x: bug.position.x + ( adjustment) / 2, y: bug.position.y - 18))
-                        .foregroundColor(.black)
-
-                    Image(systemName: "ladybug") //"microbe")
-                        .imageScale(.large)
-                        .rotationEffect(Angle(radians: bug.heading))
-                        .foregroundStyle(bug.energy > 2 ? bug.color : .gray)
-                        .position(bug.position)
-                        .onTapGesture { pressed in
-//                            print("tapped \(bug.color)")
-                            tappedBug = bug.id
-                            showingPopover = true
-                        }
-
-                    Circle()
-                        .stroke(lineWidth: 3.0)
-                        .frame(width: 8, height: 8)
-                        .position(bug.position)
-                        .foregroundStyle(bug.findClosest ? .green : .blue)
+                    if bug.alive {
+                        Rectangle()
+                            .frame(width: 22, height: 4)
+                            .position(CGPoint(x: bug.position.x, y: bug.position.y - 18))
+                            .foregroundColor(bug.energy < 5 ? .red : .blue)
+                        
+                        let adjustment = ((20 / bug.topEnergy) * bug.energy)
+                        
+                        Rectangle()
+                            .frame(width: 20 - adjustment, height: 2)
+                            .position(CGPoint(x: bug.position.x + ( adjustment) / 2, y: bug.position.y - 18))
+                            .foregroundColor(.black)
+                        
+                        Image(systemName: "ladybug") //"microbe")
+                            .imageScale(.large)
+                            .rotationEffect(Angle(radians: bug.heading))
+                            .foregroundStyle(bug.energy > 2 ? bug.color : .gray)
+                            .position(bug.position)
+                            .onTapGesture { pressed in
+                                //                            print("tapped \(bug.color)")
+                                tappedBug = bug.id
+                                showingPopover = true
+                            }
+                        
+                        Circle()
+                            .stroke(lineWidth: 3.0)
+                            .frame(width: 8, height: 8)
+                            .position(bug.position)
+                            .foregroundStyle(bug.findClosest ? .green : .blue)
+                    }
                 }
 
                 ForEach(leaves) { leaf in
@@ -124,7 +127,7 @@ struct ContentView: View {
                             Text("Speed Vector: \((String(format: "%0.2f", displayBug.speed.dx))), \((String(format: "%0.2f",displayBug.speed.dy)))")
                         }
                         HStack {
-                            Text("Heading: \((String(format: "%0.2f", displayBug.heading * 180 / .pi)))")
+                            Text("Heading: \((String(format: "%0.2f", displayBug.trueHeading() * 180 / .pi)))")
                             Text("Sight range: \((String(format: "%0.1f", displayBug.sightRange)))")
                         }
 
@@ -169,7 +172,8 @@ struct ContentView: View {
                 return
             }
 
-            if colony.isEmpty {
+//            if colony.isEmpty {
+            if numberAlive() == 0 {
                 moves = 0
                 generation += 1
 //                print("tracking: ", records)
@@ -179,12 +183,11 @@ struct ContentView: View {
                 leaves = spawnLeaves(number: 5 + Int.random(in: -4...5))
 
                 records[generation - 1].totalLeaves = leaves.count
-                records[generation - 1].totalBugs = colony.count
+                records[generation - 1].totalBugs = numberAlive() //colony.count
             }
 
             performMoves()
         })
-
     }
 
     func findBug(withId: UUID) -> Int? {
@@ -200,7 +203,7 @@ struct ContentView: View {
     func performMoves() {
         var bugsToRemove = [Int]()
 
-        guard colony.count > 0 else { return }
+        guard numberAlive() > 0 else { return }
 
         moves += 1
 
@@ -223,20 +226,24 @@ struct ContentView: View {
                 }
                 leaves.remove(at: foundLeafIndex)
             }
-           colony[i] = moveBug(bug: colony[i])
-            if colony[i].energy <= 0 {
-                bugsToRemove.append(i)
-                if colony[i].moves < records[generation - 1].minMoves || records[generation - 1].minMoves == 0 {
-                    records[generation - 1].minMoves = colony[i].moves
+
+            if colony[i].alive {
+                colony[i] = moveBug(bug: colony[i])
+                if colony[i].energy <= 0 {
+                    bugsToRemove.append(i)
+                    colony[i].alive = false
+                    if colony[i].moves < records[generation - 1].minMoves || records[generation - 1].minMoves == 0 {
+                        records[generation - 1].minMoves = colony[i].moves
+                    }
                 }
             }
         }
 
         for index in bugsToRemove.sorted(by: >) {
-            if colony.count == 1 {
+            if numberAlive() == 1 {  //colony.count
                 records[generation - 1].lastCouldSee = colony[index].moveTowardLeaf
             }
-            colony.remove(at: index)
+//            colony.remove(at: index)
         }
     }
 
@@ -248,7 +255,9 @@ struct ContentView: View {
                                       y: CGFloat.random(in: buffer...(playSize.height - buffer)))
 
             for checkBug in colony {
-                while checkBug.position.distance(from: bugPosition) < 20 {
+                var count = 0
+                while checkBug.position.distance(from: bugPosition) < 20 && count <= 10 {
+                    count += 1
                     bugPosition = CGPoint(x: CGFloat.random(in: buffer...(playSize.width - buffer)),
                                           y: CGFloat.random(in: buffer...(playSize.height - buffer)))
                 }
@@ -285,7 +294,7 @@ struct ContentView: View {
                 continue
             }
 
-            if distance(target.position, bug.position) < 8 + bug.totalSpeed {
+            if distance(target.position, bug.position) < 8 + bug.totalSpeed && target.alive{
                 return true
             }
         }
@@ -306,7 +315,6 @@ struct ContentView: View {
         }
 
         if leavesSeen.isEmpty {
-
             return nil
 
         } else {
@@ -321,6 +329,10 @@ struct ContentView: View {
 
             return useLeaf
         }
+    }
+
+    func numberAlive() -> Int {
+        return colony.reduce(0) { $0 + ($1.alive ? 1 : 0) }
     }
 
     func distance(_ point1: CGPoint, _ point2: CGPoint) -> Double {

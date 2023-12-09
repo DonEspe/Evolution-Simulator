@@ -15,6 +15,7 @@ let colors: [Color] = [.blue, .purple, .teal, .yellow, .cyan, .indigo, .mint, .o
 struct  Bug: Identifiable, Equatable {
     var id =  UUID()
     var sightRange:CGFloat = 120.0
+    var alive = true
 
     var position: CGPoint
     var speed = CGVector(dx: 0.0, dy: 0.0) {
@@ -52,22 +53,16 @@ struct  Bug: Identifiable, Equatable {
 
     var color: Color
 
-    var heading: Double = 0 //{
-//        didSet {
-//            if heading < 0 {
-//                heading += 2 * .pi
-//            }
-//
-//            if heading > 2 * .pi {
-//                heading -= 2 * .pi
-//            }
-//        }
-//    }
+    var heading: Double = 0
 
     var energy: Double = 10 {
         didSet {
             if energy > topEnergy {
                 topEnergy = energy
+            }
+
+            if energy < 0 {
+                energy = 0
             }
         }
     }
@@ -81,4 +76,17 @@ struct  Bug: Identifiable, Equatable {
     var changeSpeed = false
     var moveTowardLeaf = true
     var findClosest = false
+
+    func trueHeading() -> CGFloat {
+        var tempHeading = heading
+
+        while tempHeading < 0 {
+            tempHeading += 2 * .pi
+        }
+
+        while tempHeading > 2 * .pi {
+            tempHeading -= 2 * .pi
+        }
+        return tempHeading
+    }
 }
