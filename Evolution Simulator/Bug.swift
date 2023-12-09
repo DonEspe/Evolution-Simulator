@@ -76,6 +76,7 @@ struct  Bug: Identifiable, Equatable {
     var changeSpeed = false
     var moveTowardLeaf = true
     var findClosest = false
+    var seeOnlyAhead = false
 
     func trueHeading() -> CGFloat {
         var tempHeading = heading

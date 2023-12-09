@@ -142,6 +142,9 @@ struct ContentView: View {
                                 Text("Bug can change speed")
                             }
                         }
+                        if displayBug.seeOnlyAhead {
+                            Text("Bug can only see ahead")
+                        }
 //                        Text("Bug Finds Closest Leaf: \(displayBug.findClosest.description)")
 
 //                        Text("Bug Changes Speed: \(displayBug.changeSpeed.description)")
@@ -178,8 +181,8 @@ struct ContentView: View {
                 generation += 1
 //                print("tracking: ", records)
                 records.append(GenerationTracking(generation: generation))
-                colony = populateColony(numberOfBugs: 5 + Int.random(in: 0...10))
-//                colony = populateColony(numberOfBugs: 3)
+//                colony = populateColony(numberOfBugs: 5 + Int.random(in: 0...10))
+                colony = populateColony(numberOfBugs: 3)
                 leaves = spawnLeaves(number: 5 + Int.random(in: -4...5))
 
                 records[generation - 1].totalLeaves = leaves.count
@@ -210,7 +213,7 @@ struct ContentView: View {
         records[generation - 1].highestMoves += 1
 
         for i in 0...colony.count - 1 {
-            if let foundLeafIndex = findLeaf(bug: colony[i], leaves: leaves) {
+            if let foundLeafIndex = findLeaf(bug: colony[i], leaves: leaves, ignoreSight: true) {
                 records[generation - 1].leavesEaten += 1
                 colony[i].energy += leaves[foundLeafIndex].energyLevel
                 colony[i].leavesCollected += 1
@@ -270,6 +273,7 @@ struct ContentView: View {
             bug.changeSpeed = Bool.random()
             bug.moveTowardLeaf = Bool.random()
             bug.findClosest = Bool.random()
+            bug.seeOnlyAhead = Bool.random()
             colony.append(bug)
         }
 
@@ -302,33 +306,33 @@ struct ContentView: View {
         return false
     }
 
-    func findLeaf(bug: Bug, leaves: [Leaf], inRange: CGFloat = 8) -> Int? {
+    func findLeaf(bug: Bug, leaves: [Leaf], inRange: CGFloat = 8, ignoreSight: Bool = false) -> Int? {
         //find first
         var leavesSeen = [(number: Int, distance: CGFloat)]()
         for (index, leaf) in leaves.enumerated() {
             if distance(bug.position, leaf.position) < inRange + bug.totalSpeed {
-                leavesSeen.append((number: index, distance(bug.position, leaf.position)))
-                if bug.findClosest {
-                    return index
+                if ignoreSight || !bug.seeOnlyAhead || abs((angleBetween(point1: bug.position, point2: leaf.position) - bug.trueHeading())) < (2 * .pi / 3) {
+                    leavesSeen.append((number: index, distance(bug.position, leaf.position)))
+                    if !bug.findClosest {
+                        return index
+                    }
                 }
             }
         }
 
-        if leavesSeen.isEmpty {
-            return nil
+        guard !leavesSeen.isEmpty else { return nil }
+        print("leaves seen count: ", leavesSeen.count)
 
-        } else {
-            var shortestDistance = CGFloat.greatestFiniteMagnitude
-            var useLeaf = 0
-            for leaf in leavesSeen {
-                if leaf.distance < shortestDistance {
-                    shortestDistance = leaf.distance
-                    useLeaf = leaf.number
-                }
+        var shortestDistance = CGFloat.greatestFiniteMagnitude
+        var useLeaf = leavesSeen.first?.number
+        for leaf in leavesSeen {
+            if leaf.distance < shortestDistance {
+                shortestDistance = leaf.distance
+                useLeaf = leaf.number
             }
-
-            return useLeaf
         }
+
+        return useLeaf
     }
 
     func numberAlive() -> Int {
@@ -341,15 +345,25 @@ struct ContentView: View {
         return sqrt(part1 * part1 + part2 * part2)
     }
 
+    func angleBetween(point1: CGPoint, point2: CGPoint) -> CGFloat {
+        let deltaX = point1.x - point2.x
+        let deltaY = point1.y - point2.y
+
+//        print("angle: ", atan2(deltaY, deltaX))
+
+        return atan2(deltaY, deltaX)
+    }
+
     func moveBug(bug: Bug) -> Bug {
         var tempBug = bug
 
         if bug.moveTowardLeaf {
             if let foundLeaf = findLeaf(bug: bug, leaves: leaves, inRange: bug.sightRange) {
-                let deltaX = leaves[foundLeaf].position.x - bug.position.x
-                let deltaY = leaves[foundLeaf].position.y - bug.position.y
-
-                let angle = atan2(deltaY, deltaX)
+//                let deltaX = leaves[foundLeaf].position.x - bug.position.x
+//                let deltaY = leaves[foundLeaf].position.y - bug.position.y
+//
+//                let angle = atan2(deltaY, deltaX)
+                let angle = angleBetween(point1: leaves[foundLeaf].position, point2: bug.position)
 
                 let newDx = bug.totalSpeed * cos(angle)
                 let newDy = bug.totalSpeed * sin(angle)
@@ -357,8 +371,6 @@ struct ContentView: View {
                 tempBug.speed = CGVector(dx: newDx, dy: newDy)
             }
         }
-
-        //TODO: Add ability to move toward leaves if in certain range...
 
         tempBug.energy -=  0.05 + bug.totalSpeed / 100
         tempBug.moves += 1
