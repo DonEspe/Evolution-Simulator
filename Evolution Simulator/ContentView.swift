@@ -24,6 +24,7 @@ struct ContentView: View {
     @State var paused = false
     @State var showingPopover = false
     @State var tappedBug = UUID()
+    @State var showHealth = true
 
     var body: some View {
         VStack(alignment: .center) {
@@ -38,7 +39,7 @@ struct ContentView: View {
             }
 
             HStack {
-//                Text("Bugs: \(colony.count)")
+                //                Text("Bugs: \(colony.count)")
                 Text("Bugs: \(numberAlive())")
                     .font(.monospaced(.body)())
                     .padding(.horizontal)
@@ -50,28 +51,34 @@ struct ContentView: View {
                     .font(.monospaced(.body)())
                     .padding(.horizontal)
             }
+            HStack {
+                Toggle("Pause", isOn: $paused)
+//                Button("Pause") {
+//                    paused.toggle()
+//                }
+//                .font(.title)
+//                .foregroundColor(paused ? .gray : .blue)
 
-            Button("Pause") {
-                paused.toggle()
+                Toggle("Show Health", isOn: $showHealth)
             }
-            .font(.title)
-            .foregroundColor(paused ? .gray : .blue)
 
             ZStack(alignment: .leading) {
                 ForEach(colony) { bug in
                     if bug.alive {
-                        Rectangle()
-                            .frame(width: 22, height: 4)
-                            .position(CGPoint(x: bug.position.x, y: bug.position.y - 18))
-                            .foregroundColor(bug.energy < 5 ? .red : .blue)
-                        
-                        let adjustment = ((20 / bug.topEnergy) * bug.energy)
-                        
-                        Rectangle()
-                            .frame(width: 20 - adjustment, height: 2)
-                            .position(CGPoint(x: bug.position.x + ( adjustment) / 2, y: bug.position.y - 18))
-                            .foregroundColor(.black)
-                        
+                        if showHealth {
+                            Rectangle()
+                                .frame(width: 22, height: 4)
+                                .position(CGPoint(x: bug.position.x, y: bug.position.y - 18))
+                                .foregroundColor(bug.energy < 5 ? .red : .blue)
+
+                            let adjustment = ((20 / bug.topEnergy) * bug.energy)
+
+                            Rectangle()
+                                .frame(width: 20 - adjustment, height: 2)
+                                .position(CGPoint(x: bug.position.x + ( adjustment) / 2, y: bug.position.y - 18))
+                                .foregroundColor(.black)
+                        }
+
                         Image(systemName: "ladybug") //"microbe")
                             .imageScale(.large)
                             .rotationEffect(Angle(radians: bug.heading))
@@ -157,6 +164,8 @@ struct ContentView: View {
                         showingPopover = false
                     }
                 } else {
+                    Spacer()
+                        .frame(height: 20)
                     VStack(alignment: .center) {
                         Text("Records:")
                             .font(.title)
@@ -291,6 +300,35 @@ struct ContentView: View {
         return leaves
     }
 
+    func bugInPath(bug: Bug, colony: [Bug]) -> Bug? {
+        var bugsInRange = [(bug:Bug, distance: CGFloat)]()
+        for target in colony {
+            guard target.id != bug.id && target.alive else {
+                continue
+            }
+
+            let distance = distance(target.position, bug.position)
+
+            if distance < 30 && abs(((angleBetween(point1: bug.position, point2: target.position) ) - bug.trueHeading())) < ( .pi  ) {
+                bugsInRange.append((target, distance))
+            }
+        }
+
+        guard !bugsInRange.isEmpty else { return nil }
+
+        var shortestDistance = bugsInRange.first!.distance
+        var closestBug = bugsInRange.first!.bug
+
+        for target in bugsInRange {
+            if target.distance < shortestDistance {
+                closestBug = target.bug
+                shortestDistance = target.distance
+            }
+        }
+
+        return closestBug
+    }
+
     func testCollision(bug: Bug, colony: [Bug]) -> Bool {
 
         for target in colony {
@@ -298,7 +336,7 @@ struct ContentView: View {
                 continue
             }
 
-            if distance(target.position, bug.position) < 15 + bug.totalSpeed && target.alive{
+            if distance(target.position, bug.position) < 8 + bug.totalSpeed && target.alive {
                 return true
             }
         }
@@ -349,9 +387,19 @@ struct ContentView: View {
         let deltaX = point1.x - point2.x
         let deltaY = point1.y - point2.y
 
-//        print("angle: ", atan2(deltaY, deltaX))
+        var angle = atan2(deltaY, deltaX)
 
-        return atan2(deltaY, deltaX)
+        if angle < 0 {
+            angle += 2 * .pi
+        }
+
+        if angle > 2 * .pi {
+            angle -= 2 * .pi
+        }
+
+        print("angle: ", angle)
+
+        return angle
     }
 
     func moveBug(bug: Bug) -> Bug {
@@ -365,6 +413,17 @@ struct ContentView: View {
             highestMoves = tempBug.moves
         }
 
+        if let avoidBug = bugInPath(bug: bug, colony: colony) {
+            let angle = angleBetween(point1: avoidBug.position, point2: bug.position)
+            let adjust = 0.2
+            let turnBy:CGFloat = adjust // (Bool.random() ? adjust : -adjust)
+
+            let newDx = bug.totalSpeed * cos(bug.heading + turnBy ) //(Bool.random() ? .pi / 2 : -.pi / 2))
+            let newDy = bug.totalSpeed * sin(bug.heading  + turnBy ) //(Bool.random() ? .pi / 2 : -.pi / 2))
+
+            tempBug.speed = CGVector(dx: newDx, dy: newDy)
+        }
+
         if testCollision(bug: bug, colony: colony) {
             tempBug.speed.dx = -tempBug.speed.dx
             tempBug.speed.dy = -tempBug.speed.dy
@@ -372,15 +431,12 @@ struct ContentView: View {
             tempBug.position.x += tempBug.speed.dx
             tempBug.position.y += tempBug.speed.dy
 
-            return tempBug
+//            return tempBug
         }
 
         if bug.moveTowardLeaf {
             if let foundLeaf = findLeaf(bug: bug, leaves: leaves, inRange: bug.sightRange) {
-//                let deltaX = leaves[foundLeaf].position.x - bug.position.x
-//                let deltaY = leaves[foundLeaf].position.y - bug.position.y
-//
-//                let angle = atan2(deltaY, deltaX)
+
                 let angle = angleBetween(point1: leaves[foundLeaf].position, point2: bug.position)
 
                 let newDx = bug.totalSpeed * cos(angle)
