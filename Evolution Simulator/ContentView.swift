@@ -309,7 +309,8 @@ struct ContentView: View {
 
             let distance = distance(target.position, bug.position)
 
-            if distance < 30 && abs(((angleBetween(point1: bug.position, point2: target.position) ) - bug.trueHeading())) < ( .pi  ) {
+            if distance < 40 && abs(changeBetweenAngles(angle1: angleBetween(point1: bug.position, point2: target.position), angle2: bug.trueHeading())) < .pi * 0.75 {
+                //abs(((angleBetween(point1: bug.position, point2: target.position) ) - bug.trueHeading())) < ( .pi  ) {
                 bugsInRange.append((target, distance))
             }
         }
@@ -359,7 +360,7 @@ struct ContentView: View {
         }
 
         guard !leavesSeen.isEmpty else { return nil }
-        print("leaves seen count: ", leavesSeen.count)
+//        print("leaves seen count: ", leavesSeen.count)
 
         var shortestDistance = CGFloat.greatestFiniteMagnitude
         var useLeaf = leavesSeen.first?.number
@@ -397,9 +398,23 @@ struct ContentView: View {
             angle -= 2 * .pi
         }
 
-        print("angle: ", angle)
+//        print("angle: ", angle)
 
         return angle
+    }
+
+    func changeBetweenAngles(angle1: CGFloat, angle2: CGFloat) -> CGFloat {
+        var change = angle1 - angle2
+
+        if change > .pi {
+            change -= 2 * .pi
+        }
+
+        if change < -.pi {
+            change += 2 * .pi
+        }
+
+        return change
     }
 
     func moveBug(bug: Bug) -> Bug {
@@ -413,15 +428,42 @@ struct ContentView: View {
             highestMoves = tempBug.moves
         }
 
-        if let avoidBug = bugInPath(bug: bug, colony: colony) {
-            let angle = angleBetween(point1: avoidBug.position, point2: bug.position)
-            let adjust = 0.2
-            let turnBy:CGFloat = adjust // (Bool.random() ? adjust : -adjust)
+        if tempBug.changeSpeed {
+            tempBug.speed.dx += Double.random(in: -1...1)
+            tempBug.speed.dy += Double.random(in: -1...1)
+        }
 
-            let newDx = bug.totalSpeed * cos(bug.heading + turnBy ) //(Bool.random() ? .pi / 2 : -.pi / 2))
-            let newDy = bug.totalSpeed * sin(bug.heading  + turnBy ) //(Bool.random() ? .pi / 2 : -.pi / 2))
+        if bug.moveTowardLeaf {
+            if let foundLeaf = findLeaf(bug: tempBug, leaves: leaves, inRange: bug.sightRange) {
 
-            tempBug.speed = CGVector(dx: newDx, dy: newDy)
+                let angle = angleBetween(point1: leaves[foundLeaf].position, point2: tempBug.position)
+
+                let newDx = tempBug.totalSpeed * cos(angle)
+                let newDy = tempBug.totalSpeed * sin(angle)
+
+                tempBug.speed = CGVector(dx: newDx, dy: newDy)
+            }
+        }
+
+        if let avoidBug = bugInPath(bug: tempBug, colony: colony) {
+            let angle = angleBetween(point1: avoidBug.position, point2: tempBug.position)
+//            print("Angle between: ", angle, ", bug heading: ", tempBug.trueHeading(), ", change: ", changeBetweenAngles(angle1: angle, angle2: tempBug.trueHeading()))
+            var adjust = -0.1
+//            if angle < bug.trueHeading()
+            if changeBetweenAngles(angle1: angle, angle2: tempBug.trueHeading()) < 0
+            {
+                adjust = 0.1
+            }
+
+            if abs(changeBetweenAngles(angle1: angle, angle2: tempBug.trueHeading())) < .pi * 0.75 {
+
+                let turnBy:CGFloat = adjust // (Bool.random() ? adjust : -adjust)
+
+                let newDx = tempBug.totalSpeed * cos(tempBug.heading + turnBy ) //(Bool.random() ? .pi / 2 : -.pi / 2))
+                let newDy = tempBug.totalSpeed * sin(tempBug.heading + turnBy ) //(Bool.random() ? .pi / 2 : -.pi / 2))
+
+                tempBug.speed = CGVector(dx: newDx, dy: newDy)
+            }
         }
 
         if testCollision(bug: bug, colony: colony) {
@@ -434,22 +476,7 @@ struct ContentView: View {
 //            return tempBug
         }
 
-        if bug.moveTowardLeaf {
-            if let foundLeaf = findLeaf(bug: bug, leaves: leaves, inRange: bug.sightRange) {
 
-                let angle = angleBetween(point1: leaves[foundLeaf].position, point2: bug.position)
-
-                let newDx = bug.totalSpeed * cos(angle)
-                let newDy = bug.totalSpeed * sin(angle)
-
-                tempBug.speed = CGVector(dx: newDx, dy: newDy)
-            }
-        }
-
-        if bug.changeSpeed {
-            tempBug.speed.dx += Double.random(in: -1...1)
-            tempBug.speed.dy += Double.random(in: -1...1)
-        }
 
         tempBug.position.x += tempBug.speed.dx
         tempBug.position.y += tempBug.speed.dy
