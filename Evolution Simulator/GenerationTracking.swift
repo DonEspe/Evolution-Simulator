@@ -20,6 +20,7 @@ struct GenerationTracking: Identifiable {
 
     var collisions = 0
     var highestMoves = 0
+    var oldestBug = 0
     var minMoves = 0
     var leavesEaten = 0
     var averageMoves = 0

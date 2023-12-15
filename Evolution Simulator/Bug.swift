@@ -12,10 +12,12 @@ let maxSpeed = CGFloat(8)
 
 let colors: [Color] = [.blue, .purple, .teal, .yellow, .cyan, .indigo, .mint, .orange, .red]
 
-struct  Bug: Identifiable, Equatable {
+struct Bug: Identifiable, Equatable, Hashable {
     var id =  UUID()
+
     var sightRange:CGFloat = 120.0
     var alive = true
+    var age = 0
 
     var position: CGPoint
     var speed = CGVector(dx: 0.0, dy: 0.0) {
@@ -90,5 +92,9 @@ struct  Bug: Identifiable, Equatable {
             tempHeading -= 2 * .pi
         }
         return tempHeading
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
 }

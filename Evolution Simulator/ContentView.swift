@@ -29,10 +29,13 @@ struct ContentView: View {
     var body: some View {
         VStack(alignment: .center) {
             HStack {
-                Text("Generation: \(generation)")
+                Text("Gen: \(generation)")
                     .font(.monospaced(.body)())
                     .padding(.horizontal)
-                Spacer()
+                if !records.isEmpty {
+                    Text("Oldest: \(records[generation - 1].oldestBug)")
+                }
+//                Spacer()
                 Text("Highest: \(highestMoves)")
                     .font(.monospaced(.body)())
                     .padding(.horizontal)
@@ -135,8 +138,11 @@ struct ContentView: View {
                         Text("Clicked on:")
                             .font(.title)
                             .fontWeight(.bold)
-
-                        Text("Color: \(displayBug.color.description.capitalized)")
+                        HStack {
+                            Text("Color: \(displayBug.color.description.capitalized)")
+                            Spacer()
+                            Text("Age: \(displayBug.age)")
+                        }
                         HStack {
                             Text("Energy: \((String(format: "%0.2f", displayBug.energy)))")
                             Text("Top Energy: \(String(format: "%0.2f", displayBug.topEnergy))")
@@ -202,16 +208,39 @@ struct ContentView: View {
 //            if colony.isEmpty {
             if numberAlive() == 0 {
                 print("new generation")
+
+                //MARK: Collect top bugs and allow to move to new generation
+
+                var survivedBugs = [Bug]()
+
+                if !records.isEmpty {
+                    survivedBugs = surviveGeneration(colony: colony, genRecords: records[generation - 1])
+                }
+
                 moves = 0
                 generation += 1
 //                print("tracking: ", records)
                 records.append(GenerationTracking(generation: generation))
-                colony = populateColony(numberOfBugs: 5 + Int.random(in: 0...10))
+                colony = populateColony(numberOfBugs: 5 + Int.random(in: 0...10))  //TODO: adjust for bugs carried over
+
+                //MARK: Insert top bugs from previous generation + Add to age
+
+                for bug in survivedBugs {
+                    colony.append(bug)
+                }
+
 //                colony = populateColony(numberOfBugs: 3)
                 leaves = spawnLeaves(number: 5 + Int.random(in: -4...5) + (colony.count / 2))
 
                 records[generation - 1].totalLeaves = leaves.count
                 records[generation - 1].totalBugs = numberAlive() //colony.count
+
+                for bug in colony {
+                    if bug.alive && bug.age > records[generation - 1].oldestBug {
+                        records[generation - 1].oldestBug = bug.age
+                        print("updated age to ", bug.age)
+                    }
+                }
             }
 
             performMoves()
@@ -294,7 +323,7 @@ struct ContentView: View {
             var bug = Bug(position: bugPosition, color: .blue)
             bug.speed.dx = 5 + Double.random(in: -5...5)
             bug.speed.dy = 5 + Double.random(in: -5...5)
-            bug.color = colors.randomElement() ?? .blue
+            bug.color = bug.age < colors.count ? colors[bug.age] : .red  //  colors.randomElement() ?? .blue
             bug.changeSpeed = Bool.random()
             bug.moveTowardLeaf = Bool.random()
             bug.findClosest = Bool.random()
@@ -325,7 +354,7 @@ struct ContentView: View {
 
             let distance = distance(target.position, bug.position)
 
-            if distance < 60 && abs(changeBetweenAngles(angle1: angleBetween(point1: bug.position, point2: target.position), angle2: bug.trueHeading())) < .pi * 0.75 {
+            if distance < 50 && abs(changeBetweenAngles(angle1: angleBetween(point1: bug.position, point2: target.position), angle2: bug.trueHeading())) < .pi * 0.75 {
                 //abs(((angleBetween(point1: bug.position, point2: target.position) ) - bug.trueHeading())) < ( .pi  ) {
                 bugsInRange.append((target, distance))
             }
@@ -376,9 +405,9 @@ struct ContentView: View {
         }
 
         guard !leavesSeen.isEmpty else { return nil }
-//        print("leaves seen count: ", leavesSeen.count)
 
-        var shortestDistance = CGFloat.greatestFiniteMagnitude
+        // Find closest leaf
+        var shortestDistance = CGFloat.greatestFiniteMagnitude  //TODO: modify to find highest energy level
         var useLeaf = leavesSeen.first?.number
         for leaf in leavesSeen {
             if leaf.distance < shortestDistance {
@@ -392,6 +421,45 @@ struct ContentView: View {
 
     func numberAlive() -> Int {
         return colony.reduce(0) { $0 + ($1.alive ? 1 : 0) }
+    }
+
+    func surviveGeneration(colony: [Bug], genRecords: GenerationTracking) -> [Bug] {
+        var survived = [Bug]()
+
+        //decide if bugs go to next generation...
+        for bug in colony {
+            if bug.alive {
+                survived.append(bug)
+            }
+
+            if bug.moves > genRecords.averageMoves {
+                survived.append(bug)
+            }
+
+            if bug.leavesCollected >= 2 {
+                survived.append(bug)
+            }
+        }
+
+        //reset survived bugs...
+        survived = Array(Set(survived))
+
+        for (index, bug ) in survived.enumerated() {
+            survived[index].moves = 0
+            survived[index].alive = true
+            survived[index].age += 1
+//            if survived[index].age > genRecords.oldestBug {
+//                records[generation - 1].oldestBug = survived[index].age
+//            }
+            survived[index].leavesCollected = 0
+            survived[index].energy = 10 //TODO: figure out good start energy for bugs
+            survived[index].color = survived[index].age < colors.count ? colors[survived[index].age] : .red
+        }
+
+        print(survived.count, " bugs survived to next generation.")
+
+
+        return survived
     }
 
     func distance(_ point1: CGPoint, _ point2: CGPoint) -> Double {
@@ -483,7 +551,6 @@ struct ContentView: View {
         }
 
         if testCollision(bug: bug, colony: colony) {
-            print("collided")
             tempBug.collision += 1
             records[generation - 1].collisions += 1
             tempBug.speed.dx = -tempBug.speed.dx
@@ -541,6 +608,9 @@ struct GenerationView: View {
                     .fontWeight(.bold)
                 Spacer()
             }
+            
+            Text("Oldest: \(record.oldestBug)")
+
             HStack {
                 Text("Total bugs: \(record.totalBugs)")
                 Spacer()
