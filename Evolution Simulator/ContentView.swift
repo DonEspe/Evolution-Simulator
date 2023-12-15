@@ -36,6 +36,10 @@ struct ContentView: View {
                 Text("Highest: \(highestMoves)")
                     .font(.monospaced(.body)())
                     .padding(.horizontal)
+//                Spacer()
+//                if !records.isEmpty {
+//                    Text("Collisions: \(records[generation - 1].collisions)")
+//                }
             }
 
             HStack {
@@ -68,14 +72,14 @@ struct ContentView: View {
                         if showHealth {
                             Rectangle()
                                 .frame(width: 22, height: 4)
-                                .position(CGPoint(x: bug.position.x, y: bug.position.y - 18))
+                                .position(CGPoint(x: bug.position.x, y: bug.position.y - 20))
                                 .foregroundColor(bug.energy < 5 ? .red : .blue)
 
                             let adjustment = ((20 / bug.topEnergy) * bug.energy)
 
                             Rectangle()
                                 .frame(width: 20 - adjustment, height: 2)
-                                .position(CGPoint(x: bug.position.x + ( adjustment) / 2, y: bug.position.y - 18))
+                                .position(CGPoint(x: bug.position.x + ( adjustment) / 2, y: bug.position.y - 20))
                                 .foregroundColor(.black)
                         }
 
@@ -95,6 +99,14 @@ struct ContentView: View {
                             .frame(width: 8, height: 8)
                             .position(bug.position)
                             .foregroundStyle(bug.findClosest ? .green : .blue)
+
+                        if tappedBug == bug.id && showingPopover {
+                            Circle()
+                                .stroke(lineWidth: 1.0)
+                                .frame(width: 33, height: 33)
+                                .position(bug.position)
+                                .foregroundStyle(.white.blendMode(.difference))
+                        }
                     }
                 }
 
@@ -156,8 +168,11 @@ struct ContentView: View {
 
 //                        Text("Bug Changes Speed: \(displayBug.changeSpeed.description)")
                         Text("Leaves Collected: \(displayBug.leavesCollected)")
-
-                        Text("Moves: \(displayBug.moves)")
+                        HStack {
+                            Text("Moves: \(displayBug.moves)")
+                            Spacer()
+                            Text("Collisions: \(displayBug.collision)")
+                        }
                         Spacer()
                     }
                     .onTapGesture {
@@ -186,6 +201,7 @@ struct ContentView: View {
 
 //            if colony.isEmpty {
             if numberAlive() == 0 {
+                print("new generation")
                 moves = 0
                 generation += 1
 //                print("tracking: ", records)
@@ -309,7 +325,7 @@ struct ContentView: View {
 
             let distance = distance(target.position, bug.position)
 
-            if distance < 40 && abs(changeBetweenAngles(angle1: angleBetween(point1: bug.position, point2: target.position), angle2: bug.trueHeading())) < .pi * 0.75 {
+            if distance < 60 && abs(changeBetweenAngles(angle1: angleBetween(point1: bug.position, point2: target.position), angle2: bug.trueHeading())) < .pi * 0.75 {
                 //abs(((angleBetween(point1: bug.position, point2: target.position) ) - bug.trueHeading())) < ( .pi  ) {
                 bugsInRange.append((target, distance))
             }
@@ -467,6 +483,9 @@ struct ContentView: View {
         }
 
         if testCollision(bug: bug, colony: colony) {
+            print("collided")
+            tempBug.collision += 1
+            records[generation - 1].collisions += 1
             tempBug.speed.dx = -tempBug.speed.dx
             tempBug.speed.dy = -tempBug.speed.dy
 
@@ -544,7 +563,11 @@ struct GenerationView: View {
                     Text("Last could see")
                 }
             }
-            Text("Total moves: \(record.totalMoves)")
+            HStack {
+                Text("Total moves: \(record.totalMoves)")
+                Spacer()
+                Text("Collisions: \(record.collisions)")
+            }
             HStack {
                 Text("Average moves: \(record.averageMoves)")
                 Spacer()

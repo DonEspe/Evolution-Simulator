@@ -17,6 +17,8 @@ struct GenerationTracking: Identifiable {
             averageMoves = totalMoves / totalBugs
         }
     }
+
+    var collisions = 0
     var highestMoves = 0
     var minMoves = 0
     var leavesEaten = 0

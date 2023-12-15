@@ -70,6 +70,7 @@ struct  Bug: Identifiable, Equatable {
     var topEnergy: Double = 10
 
     var moves = 0
+    var collision = 0
 
     var leavesCollected = 0
 
