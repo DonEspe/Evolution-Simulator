@@ -7,8 +7,8 @@
 
 import SwiftUI
 
-let playSize = CGSize(width: 300, height: 300)
-let buffer = CGFloat(30.0)
+let playSize = CGSize(width: 330, height: 310)
+let buffer = CGFloat(20.0)
 
 struct ContentView: View {
     let timer = Timer.publish(every: 0.04, on: .main, in: .common).autoconnect()
@@ -58,6 +58,16 @@ struct ContentView: View {
                     .font(.monospaced(.body)())
                     .padding(.horizontal)
             }
+
+            HStack {
+                if !records.isEmpty {
+                    Text("Total Bugs: \(records[generation - 1].totalBugs)")
+                    Spacer()
+                    Text("Bugs survived: \(records[generation - 1].numberFromPrevious)")
+                    Spacer()
+                    Text("total leaves: \(records[generation - 1].totalLeaves)")
+                }
+            }
             HStack {
                 Toggle("Pause", isOn: $paused)
 //                Button("Pause") {
@@ -69,7 +79,7 @@ struct ContentView: View {
                 Toggle("Show Health", isOn: $showHealth)
             }
 
-            ZStack(alignment: .leading) {
+            ZStack {
                 ForEach(colony) { bug in
                     if bug.alive {
                         if showHealth {
@@ -92,7 +102,6 @@ struct ContentView: View {
                             .foregroundStyle(bug.energy > 2 ? bug.color : .gray)
                             .position(bug.position)
                             .onTapGesture { pressed in
-                                //                            print("tapped \(bug.color)")
                                 tappedBug = bug.id
                                 showingPopover = true
                             }
@@ -122,19 +131,20 @@ struct ContentView: View {
                 }
 
                 Rectangle()
-                    .stroke()
-                    .frame(width: playSize.width + 20, height: playSize.height + 20)
-                    .position(CGPoint(x: buffer + playSize.width / 2, y: buffer + playSize.height / 2))
+                    .stroke(lineWidth: 2)
+                    .frame(width: playSize.width + buffer, height: playSize.height + buffer)
+                    .position(CGPoint(x: buffer + (playSize.width) / 2, y: buffer + (playSize.height) / 2))
 
             }
             .animation(.linear, value: colony)
 
-            Spacer()
-                .frame(height: 40)
+
 
                 if showingPopover, let showBug = findBug(withId: tappedBug) {
                     let displayBug = colony[showBug]
                     VStack {
+                        Spacer()
+                            .frame(height: 20)
                         Text("Clicked on:")
                             .font(.title)
                             .fontWeight(.bold)
@@ -185,9 +195,9 @@ struct ContentView: View {
                         showingPopover = false
                     }
                 } else {
-                    Spacer()
-                        .frame(height: 20)
                     VStack(alignment: .center) {
+                        Spacer()
+                            .frame(height: 20)
                         Text("Records:")
                             .font(.title)
                             .fontWeight(.bold)
@@ -221,6 +231,7 @@ struct ContentView: View {
                 generation += 1
 //                print("tracking: ", records)
                 records.append(GenerationTracking(generation: generation))
+                records[generation - 1].numberFromPrevious = survivedBugs.count
                 colony = populateColony(numberOfBugs: 5 + Int.random(in: 0...10))  //TODO: adjust for bugs carried over
 
                 //MARK: Insert top bugs from previous generation + Add to age
@@ -444,20 +455,19 @@ struct ContentView: View {
         //reset survived bugs...
         survived = Array(Set(survived))
 
-        for (index, bug ) in survived.enumerated() {
+        for (index, _ ) in survived.enumerated() {
             survived[index].moves = 0
             survived[index].alive = true
             survived[index].age += 1
-//            if survived[index].age > genRecords.oldestBug {
-//                records[generation - 1].oldestBug = survived[index].age
-//            }
+
             survived[index].leavesCollected = 0
             survived[index].energy = 10 //TODO: figure out good start energy for bugs
             survived[index].color = survived[index].age < colors.count ? colors[survived[index].age] : .red
         }
 
-        print(survived.count, " bugs survived to next generation.")
+//        records[generation - 1].numberFromPrevious = survived.count
 
+        print(survived.count, " bugs survived to next generation.")
 
         return survived
     }
@@ -608,8 +618,11 @@ struct GenerationView: View {
                     .fontWeight(.bold)
                 Spacer()
             }
-            
-            Text("Oldest: \(record.oldestBug)")
+            HStack {
+                Text("Oldest: \(record.oldestBug)")
+                Spacer()
+                Text("From prev: \(record.numberFromPrevious)")
+            }
 
             HStack {
                 Text("Total bugs: \(record.totalBugs)")

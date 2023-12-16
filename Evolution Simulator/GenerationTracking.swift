@@ -29,4 +29,5 @@ struct GenerationTracking: Identifiable {
     var bugsCollectedLeaves = 0
     var sightedCollectedLeaves = 0
     var blindCollectedLeaves = 0
+    var numberFromPrevious = 0
 }

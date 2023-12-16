@@ -10,7 +10,7 @@ import SwiftUI
 
 let maxSpeed = CGFloat(8)
 
-let colors: [Color] = [.blue, .purple, .teal, .yellow, .cyan, .indigo, .mint, .orange, .red]
+let colors: [Color] = [.blue, .teal, .cyan, .purple, .indigo, .mint, .yellow, .orange, .red]
 
 struct Bug: Identifiable, Equatable, Hashable {
     var id =  UUID()
