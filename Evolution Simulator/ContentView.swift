@@ -147,9 +147,7 @@ struct ContentView: View {
             }
             .animation(.linear, value: colony)
 
-
-
-                if showingPopover, let showBug = findBug(withId: tappedBug) {
+            if showingPopover, let showBug = findBug(withId: tappedBug, in: colony) {
                     let displayBug = colony[showBug]
                     VStack {
                         Spacer()
@@ -257,12 +255,23 @@ struct ContentView: View {
                 records[generation - 1].totalLeaves = leaves.count
                 records[generation - 1].totalBugs = numberAlive() //colony.count
 
-                for bug in colony {
-                    if let spawnedBy = bug.spawnedBy {
-                        if let parentIndex = findBug(withId: spawnedBy) {
-                            self.colony[parentIndex].bugsSpawned += 1
+                for (index, bug) in colony.enumerated() {
+
+                    for checkBug in colony {
+                        var count = 0
+                        while checkBug.position.distance(from: colony[index].position) < 20 && count <= 20 {
+                            count += 1
+                            colony[index].position = CGPoint(x: CGFloat.random(in: buffer...(playSize.width - buffer)),
+                                                             y: CGFloat.random(in: buffer...(playSize.height - buffer)))
                         }
                     }
+
+//                        if let spawnedBy = bug.spawnedBy {
+//                            if let parentIndex = findBug(withId: spawnedBy) {
+//                                print("bug id spawned by: ", spawnedBy)
+//                                self.colony[parentIndex].bugsSpawned += 1
+//                            }
+//                        }
 
                     if bug.alive && bug.age > records[generation - 1].oldestBug {
                         records[generation - 1].oldestBug = bug.age
@@ -275,7 +284,7 @@ struct ContentView: View {
         })
     }
 
-    func findBug(withId: UUID) -> Int? {
+    func findBug(withId: UUID, in colony: [Bug]) -> Int? {
         for (index, bug) in colony.enumerated() {
             if bug.id == withId {
                 return index
@@ -339,14 +348,15 @@ struct ContentView: View {
             var bugPosition = CGPoint(x: CGFloat.random(in: buffer...(playSize.width - buffer)),
                                       y: CGFloat.random(in: buffer...(playSize.height - buffer)))
 
-            for checkBug in colony {
-                var count = 0
-                while checkBug.position.distance(from: bugPosition) < 20 && count <= 20 {
-                    count += 1
-                    bugPosition = CGPoint(x: CGFloat.random(in: buffer...(playSize.width - buffer)),
-                                          y: CGFloat.random(in: buffer...(playSize.height - buffer)))
-                }
-            }
+//            for checkBug in colony {
+//                var count = 0
+//                while checkBug.position.distance(from: bugPosition) < 20 && count <= 20 {
+//                    count += 1
+//                    bugPosition = CGPoint(x: CGFloat.random(in: buffer...(playSize.width - buffer)),
+//                                          y: CGFloat.random(in: buffer...(playSize.height - buffer)))
+//                }
+//            }
+
 //            var bug = Bug(position: CGPoint(x: 20 * Double(i) + buffer, y: 20 * Double(i) + buffer), color: .blue)
             var bug = Bug(position: bugPosition, color: .blue)
             bug.speed.dx = 5 + Double.random(in: -5...5)
@@ -455,7 +465,7 @@ struct ContentView: View {
         var survived = [Bug]()
 
         //decide if bugs go to next generation...
-        for bug in colony {
+        for (index, bug) in colony.enumerated() {
             if bug.alive {
                 survived.append(bug)
             }
@@ -464,14 +474,25 @@ struct ContentView: View {
                 survived.append(bug)
             }
 
+            survived = Array(Set(survived))
+
             if bug.leavesCollected >= 2 {
                 survived.append(bug)
             }
 
+            survived = Array(Set(survived))
+
             if bug.leavesCollected > 3 {
                 var tempBug = bug
+
+                if let parentIndex = findBug(withId: bug.id, in: survived) {
+                    survived[parentIndex].bugsSpawned += 1
+                    print("added spawn... ")
+                }
+
                 tempBug.id = UUID()
                 tempBug.spawnedBy = bug.id
+                tempBug.bugsSpawned = 0
 
 //                if let parentIndex = findBug(withId: bug.id) {
 //                    self.colony[parentIndex].bugsSpawed += 1
