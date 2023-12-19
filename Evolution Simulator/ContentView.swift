@@ -110,7 +110,16 @@ struct ContentView: View {
                             .stroke(lineWidth: 3.0)
                             .frame(width: 8, height: 8)
                             .position(bug.position)
-                            .foregroundStyle(bug.findClosest ? .green : .blue)
+                            .foregroundStyle(bug.bugsSpawned > 0 ? .white : .clear)
+
+//                            .foregroundStyle(bug.findClosest ? .green : .blue)
+
+                        Circle()
+                            .stroke(lineWidth: 2.0)
+                            .frame(width: 8, height: 8)
+                            .position(bug.position)
+                            .foregroundStyle(bug.spawnedBy != nil ? .yellow : .clear)
+                        //                            .foregroundStyle(bug.findClosest ? .green : .blue)
 
                         if tappedBug == bug.id && showingPopover {
                             Circle()
@@ -189,6 +198,7 @@ struct ContentView: View {
                             Spacer()
                             Text("Collisions: \(displayBug.collision)")
                         }
+                        Text("Spawned: \(displayBug.bugsSpawned)")
                         Spacer()
                     }
                     .onTapGesture {
@@ -232,8 +242,9 @@ struct ContentView: View {
 //                print("tracking: ", records)
                 records.append(GenerationTracking(generation: generation))
                 records[generation - 1].numberFromPrevious = survivedBugs.count
-                colony = populateColony(numberOfBugs: 5 + Int.random(in: 0...10))  //TODO: adjust for bugs carried over
+//                colony = populateColony(numberOfBugs: 5 + Int.random(in: 0...10))  //TODO: adjust for bugs carried over
 
+                colony = populateColony(numberOfBugs: Int.random(in: 1...5))
                 //MARK: Insert top bugs from previous generation + Add to age
 
                 for bug in survivedBugs {
@@ -247,6 +258,12 @@ struct ContentView: View {
                 records[generation - 1].totalBugs = numberAlive() //colony.count
 
                 for bug in colony {
+                    if let spawnedBy = bug.spawnedBy {
+                        if let parentIndex = findBug(withId: spawnedBy) {
+                            self.colony[parentIndex].bugsSpawned += 1
+                        }
+                    }
+
                     if bug.alive && bug.age > records[generation - 1].oldestBug {
                         records[generation - 1].oldestBug = bug.age
                         print("updated age to ", bug.age)
@@ -450,18 +467,33 @@ struct ContentView: View {
             if bug.leavesCollected >= 2 {
                 survived.append(bug)
             }
+
+            if bug.leavesCollected > 3 {
+                var tempBug = bug
+                tempBug.id = UUID()
+                tempBug.spawnedBy = bug.id
+
+//                if let parentIndex = findBug(withId: bug.id) {
+//                    self.colony[parentIndex].bugsSpawed += 1
+//                }
+
+                tempBug.age = 0
+                survived.append(tempBug)
+                print("bug spawned new bug...")
+            }
         }
 
         //reset survived bugs...
         survived = Array(Set(survived))
 
         for (index, _ ) in survived.enumerated() {
+
             survived[index].moves = 0
             survived[index].alive = true
             survived[index].age += 1
-
             survived[index].leavesCollected = 0
             survived[index].energy = 10 //TODO: figure out good start energy for bugs
+            survived[index].topEnergy = survived[index].energy
             survived[index].color = survived[index].age < colors.count ? colors[survived[index].age] : .red
         }
 
