@@ -78,6 +78,7 @@ struct Bug: Identifiable, Equatable, Hashable {
 
     var bugsSpawned = 0
     var spawnedBy: UUID? = nil
+    var genNumber = 0
 
     var changeSpeed = false
     var moveTowardLeaf = true

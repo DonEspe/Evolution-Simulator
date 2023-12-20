@@ -196,7 +196,11 @@ struct ContentView: View {
                             Spacer()
                             Text("Collisions: \(displayBug.collision)")
                         }
-                        Text("Spawned: \(displayBug.bugsSpawned)")
+                        HStack {
+                            Text("Spawned: \(displayBug.bugsSpawned)")
+                            Spacer()
+                            Text("Gen #\(displayBug.genNumber)")
+                        }
                         Spacer()
                     }
                     .onTapGesture {
@@ -345,7 +349,7 @@ struct ContentView: View {
         var colony = [Bug]()
 
         for _ in 0...numberOfBugs - 1 {
-            var bugPosition = CGPoint(x: CGFloat.random(in: buffer...(playSize.width - buffer)),
+            let bugPosition = CGPoint(x: CGFloat.random(in: buffer...(playSize.width - buffer)),
                                       y: CGFloat.random(in: buffer...(playSize.height - buffer)))
 
 //            for checkBug in colony {
@@ -465,7 +469,7 @@ struct ContentView: View {
         var survived = [Bug]()
 
         //decide if bugs go to next generation...
-        for (index, bug) in colony.enumerated() {
+        for bug in colony {
             if bug.alive {
                 survived.append(bug)
             }
@@ -487,11 +491,11 @@ struct ContentView: View {
 
                 if let parentIndex = findBug(withId: bug.id, in: survived) {
                     survived[parentIndex].bugsSpawned += 1
-                    print("added spawn... ")
                 }
 
                 tempBug.id = UUID()
                 tempBug.spawnedBy = bug.id
+                tempBug.genNumber += 1
                 tempBug.bugsSpawned = 0
 
 //                if let parentIndex = findBug(withId: bug.id) {
@@ -500,7 +504,7 @@ struct ContentView: View {
 
                 tempBug.age = 0
                 survived.append(tempBug)
-                print("bug spawned new bug...")
+                print("bug spawned new bug. Gen #", tempBug.genNumber)
             }
         }
 
