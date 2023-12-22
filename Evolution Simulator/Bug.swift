@@ -84,6 +84,7 @@ struct Bug: Identifiable, Equatable, Hashable {
     var moveTowardLeaf = true
     var findClosest = false
     var seeOnlyAhead = false
+    var sightAngle:CGFloat = (.pi / 5) //(2 * .pi / 3)
 
     func trueHeading() -> CGFloat {
         var tempHeading = heading

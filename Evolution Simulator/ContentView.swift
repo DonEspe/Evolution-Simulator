@@ -25,6 +25,7 @@ struct ContentView: View {
     @State var showingPopover = false
     @State var tappedBug = UUID()
     @State var showHealth = true
+    @State var showSightLines = false
 
     var body: some View {
         VStack(alignment: .center) {
@@ -77,6 +78,7 @@ struct ContentView: View {
 //                .foregroundColor(paused ? .gray : .blue)
 
                 Toggle("Show Health", isOn: $showHealth)
+                Toggle("Show Sight", isOn: $showSightLines)
             }
 
             ZStack {
@@ -105,7 +107,30 @@ struct ContentView: View {
                                 tappedBug = bug.id
                                 showingPopover = true
                             }
-                        
+
+                        if bug.seeOnlyAhead && bug.moveTowardLeaf && showSightLines {
+                            Rectangle()
+                                .trim(from: 0, to: 0.5)
+                                .frame(width: 2, height: 40)
+                                .rotationEffect(Angle(radians: bug.trueHeading()), anchor: .center)
+                                .foregroundColor(.blue)
+                                .position(x: bug.position.x , y: bug.position.y)
+
+
+                            Rectangle()
+                                .trim(from: 0, to: 0.5)
+                                .frame(width: 2, height: bug.sightRange)
+                                .rotationEffect(Angle(radians: bug.trueHeading() - bug.sightAngle), anchor: .center)
+                                .foregroundColor(.green)
+                                .position(x: bug.position.x , y: bug.position.y)
+
+                            Rectangle()
+                                .trim(from: 0, to: 0.5)
+                                .frame(width: 2, height: bug.sightRange)
+                                .rotationEffect(Angle(radians: bug.trueHeading() + bug.sightAngle), anchor: .center)
+                                .foregroundColor(.green)
+                                .position(x: bug.position.x , y: bug.position.y)
+                        }
                         Circle()
                             .stroke(lineWidth: 3.0)
                             .frame(width: 8, height: 8)
@@ -174,10 +199,11 @@ struct ContentView: View {
                         }
 
                         HStack {
-                            if displayBug.moveTowardLeaf && !displayBug.findClosest{
-                                //                            Text("Bug Moves Toward Leaf: \(displayBug.moveTowardLeaf.description)")
+                            if displayBug.moveTowardLeaf {
                                 Text("Bug Moves Toward Leaf")
-                            } else {
+                            } 
+
+                            if displayBug.findClosest {
                                 Text("Bug Finds Closest Leaf")
                             }
                             if displayBug.changeSpeed {
@@ -247,6 +273,8 @@ struct ContentView: View {
 //                colony = populateColony(numberOfBugs: 5 + Int.random(in: 0...10))  //TODO: adjust for bugs carried over
 
                 colony = populateColony(numberOfBugs: Int.random(in: 1...5))
+//                colony = populateColony(numberOfBugs: 1)
+
                 //MARK: Insert top bugs from previous generation + Add to age
 
                 for bug in survivedBugs {
@@ -255,6 +283,7 @@ struct ContentView: View {
 
 //                colony = populateColony(numberOfBugs: 3)
                 leaves = spawnLeaves(number: 5 + Int.random(in: -4...5) + (colony.count / 2))
+//                leaves = spawnLeaves(number: 20)
 
                 records[generation - 1].totalLeaves = leaves.count
                 records[generation - 1].totalBugs = numberAlive() //colony.count
@@ -309,6 +338,7 @@ struct ContentView: View {
 
         for i in 0...colony.count - 1 {
             if let foundLeafIndex = findLeaf(bug: colony[i], leaves: leaves, ignoreSight: true) {
+                print("picked up leaf")
                 records[generation - 1].leavesEaten += 1
                 colony[i].energy += leaves[foundLeafIndex].energyLevel
                 colony[i].leavesCollected += 1
@@ -352,24 +382,19 @@ struct ContentView: View {
             let bugPosition = CGPoint(x: CGFloat.random(in: buffer...(playSize.width - buffer)),
                                       y: CGFloat.random(in: buffer...(playSize.height - buffer)))
 
-//            for checkBug in colony {
-//                var count = 0
-//                while checkBug.position.distance(from: bugPosition) < 20 && count <= 20 {
-//                    count += 1
-//                    bugPosition = CGPoint(x: CGFloat.random(in: buffer...(playSize.width - buffer)),
-//                                          y: CGFloat.random(in: buffer...(playSize.height - buffer)))
-//                }
-//            }
-
 //            var bug = Bug(position: CGPoint(x: 20 * Double(i) + buffer, y: 20 * Double(i) + buffer), color: .blue)
             var bug = Bug(position: bugPosition, color: .blue)
             bug.speed.dx = 5 + Double.random(in: -5...5)
             bug.speed.dy = 5 + Double.random(in: -5...5)
             bug.color = bug.age < colors.count ? colors[bug.age] : .red  //  colors.randomElement() ?? .blue
             bug.changeSpeed = Bool.random()
-            bug.moveTowardLeaf = Bool.random()
-            bug.findClosest = Bool.random()
             bug.seeOnlyAhead = Bool.random()
+            bug.findClosest = Bool.random()
+            bug.moveTowardLeaf = Bool.random()
+            if bug.findClosest {
+                bug.moveTowardLeaf = true
+            }
+
             colony.append(bug)
         }
 
@@ -435,10 +460,13 @@ struct ContentView: View {
     func findLeaf(bug: Bug, leaves: [Leaf], inRange: CGFloat = 8, ignoreSight: Bool = false) -> Int? {
         //find first
         var leavesSeen = [(number: Int, distance: CGFloat)]()
-        for (index, leaf) in leaves.enumerated() {
+        for (index, leaf) in leaves.enumerated() { //FIXME: maybe record all leaves found and then check if distance in range
+            print("bug range: ", bug.sightRange + bug.totalSpeed,", leaf distance: ", distance(bug.position, leaf.position),", inRange: ", inRange)
             if distance(bug.position, leaf.position) < inRange + bug.totalSpeed {
-                if ignoreSight || !bug.seeOnlyAhead || abs((angleBetween(point1: bug.position, point2: leaf.position) - bug.trueHeading())) < (2 * .pi / 3) {
+                print("leaf in range...")
+                if ignoreSight || !bug.seeOnlyAhead || abs((angleBetween(point1: bug.position, point2: leaf.position) - bug.trueHeading())) < bug.sightAngle {
                     leavesSeen.append((number: index, distance(bug.position, leaf.position)))
+                    print("found leaf")
                     if !bug.findClosest {
                         return index
                     }
@@ -447,17 +475,18 @@ struct ContentView: View {
         }
 
         guard !leavesSeen.isEmpty else { return nil }
+        print("leaves seen: ", leavesSeen.count)
 
         // Find closest leaf
-        var shortestDistance = CGFloat.greatestFiniteMagnitude  //TODO: modify to find highest energy level
-        var useLeaf = leavesSeen.first?.number
+        var shortestDistance = leavesSeen.first!.distance  //TODO: modify to find highest energy level
+        var useLeaf = leavesSeen.first!.number
         for leaf in leavesSeen {
             if leaf.distance < shortestDistance {
                 shortestDistance = leaf.distance
                 useLeaf = leaf.number
             }
         }
-
+//        print("aim toward leaf #", useLeaf," at a distance of ", shortestDistance)
         return useLeaf
     }
 
@@ -549,7 +578,7 @@ struct ContentView: View {
             angle -= 2 * .pi
         }
 
-//        print("angle: ", angle)
+        print("angle: ", angle)
 
         return angle
     }
@@ -579,28 +608,46 @@ struct ContentView: View {
             highestMoves = tempBug.moves
         }
 
-        if tempBug.changeSpeed {
-            tempBug.speed.dx += Double.random(in: -1...1)
-            tempBug.speed.dy += Double.random(in: -1...1)
+        if tempBug.changeSpeed { //} && !bug.moveTowardLeaf {
+            tempBug.speed.dx += Double.random(in: -0.5...0.5)
+            tempBug.speed.dy += Double.random(in: -0.5...0.5)
         }
+//        print("move bug")
+//        print("moveToward: ", tempBug.moveTowardLeaf,", findClosest: ", tempBug.findClosest)
 
-        if bug.moveTowardLeaf {
-            if let foundLeaf = findLeaf(bug: tempBug, leaves: leaves, inRange: bug.sightRange) {
+        if tempBug.moveTowardLeaf || tempBug.findClosest {
+//            print("Bug should move toward leaf")
+            if let foundLeaf = findLeaf(bug: tempBug, leaves: leaves, inRange: tempBug.sightRange, ignoreSight:
+                                            !tempBug.seeOnlyAhead) {
+//                print("aim toward leaf")
+//                print("aim toward leaf #", foundLeaf," at a distance of ",  distance(bug.position, leaves[foundLeaf].position))
+
 
                 let angle = angleBetween(point1: leaves[foundLeaf].position, point2: tempBug.position)
+                var adjustAngleBy:CGFloat = -0.1
 
-                let newDx = tempBug.totalSpeed * cos(angle)
-                let newDy = tempBug.totalSpeed * sin(angle)
+                if angle > tempBug.trueHeading() {
+                    adjustAngleBy = 0.1
+                }
+
+//                print("true heading before adjust: ", tempBug.heading, ", totalSpeed: ", tempBug.totalSpeed)
+
+                let newDx = tempBug.totalSpeed * cos(angle ) //cos(tempBug.heading + adjustAngleBy - .pi / 2)// + adjustAngleBy) // cos(angle)
+                let newDy = tempBug.totalSpeed * sin(angle ) //(tempBug.heading + adjustAngleBy - .pi / 2)// + adjustAngleBy) //sin(angle)
 
                 tempBug.speed = CGVector(dx: newDx, dy: newDy)
-            }
+//                print("true heading after adjust: ", tempBug.heading, ", totalSpeed: ", tempBug.totalSpeed)
+            }// else if tempBug.changeSpeed {
+//                tempBug.speed.dx += Double.random(in: -1...1)
+//                tempBug.speed.dy += Double.random(in: -1...1)
+//            }
         }
 
         if let avoidBug = bugInPath(bug: tempBug, colony: colony) {
             let angle = angleBetween(point1: avoidBug.position, point2: tempBug.position)
-//            print("Angle between: ", angle, ", bug heading: ", tempBug.trueHeading(), ", change: ", changeBetweenAngles(angle1: angle, angle2: tempBug.trueHeading()))
+
             var adjust = -0.1
-//            if angle < bug.trueHeading()
+
             if changeBetweenAngles(angle1: angle, angle2: tempBug.trueHeading()) < 0
             {
                 adjust = 0.1
@@ -610,8 +657,8 @@ struct ContentView: View {
 
                 let turnBy:CGFloat = adjust // (Bool.random() ? adjust : -adjust)
 
-                let newDx = tempBug.totalSpeed * cos(tempBug.heading + turnBy ) //(Bool.random() ? .pi / 2 : -.pi / 2))
-                let newDy = tempBug.totalSpeed * sin(tempBug.heading + turnBy ) //(Bool.random() ? .pi / 2 : -.pi / 2))
+                let newDx = tempBug.totalSpeed * cos(tempBug.heading + turnBy) //- .pi / 2 ) //(Bool.random() ? .pi / 2 : -.pi / 2))
+                let newDy = tempBug.totalSpeed * sin(tempBug.heading + turnBy) // - .pi / 2 ) //(Bool.random() ? .pi / 2 : -.pi / 2))
 
                 tempBug.speed = CGVector(dx: newDx, dy: newDy)
             }
