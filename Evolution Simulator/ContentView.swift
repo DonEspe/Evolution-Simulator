@@ -308,7 +308,7 @@ struct ContentView: View {
 
                     if bug.alive && bug.age > records[generation - 1].oldestBug {
                         records[generation - 1].oldestBug = bug.age
-                        print("updated age to ", bug.age)
+//                        print("updated age to ", bug.age)
                     }
                 }
             }
@@ -338,7 +338,6 @@ struct ContentView: View {
 
         for i in 0...colony.count - 1 {
             if let foundLeafIndex = findLeaf(bug: colony[i], leaves: leaves, ignoreSight: true) {
-                print("picked up leaf")
                 records[generation - 1].leavesEaten += 1
                 colony[i].energy += leaves[foundLeafIndex].energyLevel
                 colony[i].leavesCollected += 1
@@ -421,7 +420,7 @@ struct ContentView: View {
 
             let distance = distance(target.position, bug.position)
 
-            if distance < 50 && abs(changeBetweenAngles(angle1: angleBetween(point1: bug.position, point2: target.position), angle2: bug.trueHeading())) < .pi * 0.75 {
+            if distance < 50 && abs(changeBetweenAngles(angle1: angleBetween(point1: bug.position, point2: target.position), angle2: bug.trueHeading())) < .pi * 0.5 {
                 //abs(((angleBetween(point1: bug.position, point2: target.position) ) - bug.trueHeading())) < ( .pi  ) {
                 bugsInRange.append((target, distance))
             }
@@ -461,12 +460,12 @@ struct ContentView: View {
         //find first
         var leavesSeen = [(number: Int, distance: CGFloat)]()
         for (index, leaf) in leaves.enumerated() { //FIXME: maybe record all leaves found and then check if distance in range
-            print("bug range: ", bug.sightRange + bug.totalSpeed,", leaf distance: ", distance(bug.position, leaf.position),", inRange: ", inRange)
+//            print("bug range: ", bug.sightRange + bug.totalSpeed,", leaf distance: ", distance(bug.position, leaf.position),", inRange: ", inRange)
             if distance(bug.position, leaf.position) < inRange + bug.totalSpeed {
-                print("leaf in range...")
+//                print("leaf in range...")
                 if ignoreSight || !bug.seeOnlyAhead || abs((angleBetween(point1: bug.position, point2: leaf.position) - bug.trueHeading())) < bug.sightAngle {
                     leavesSeen.append((number: index, distance(bug.position, leaf.position)))
-                    print("found leaf")
+//                    print("found leaf")
                     if !bug.findClosest {
                         return index
                     }
@@ -475,7 +474,7 @@ struct ContentView: View {
         }
 
         guard !leavesSeen.isEmpty else { return nil }
-        print("leaves seen: ", leavesSeen.count)
+//        print("leaves seen: ", leavesSeen.count)
 
         // Find closest leaf
         var shortestDistance = leavesSeen.first!.distance  //TODO: modify to find highest energy level
@@ -527,13 +526,9 @@ struct ContentView: View {
                 tempBug.genNumber += 1
                 tempBug.bugsSpawned = 0
 
-//                if let parentIndex = findBug(withId: bug.id) {
-//                    self.colony[parentIndex].bugsSpawed += 1
-//                }
-
                 tempBug.age = 0
                 survived.append(tempBug)
-                print("bug spawned new bug. Gen #", tempBug.genNumber)
+//                print("bug spawned new bug. Gen #", tempBug.genNumber)
             }
         }
 
@@ -550,10 +545,6 @@ struct ContentView: View {
             survived[index].topEnergy = survived[index].energy
             survived[index].color = survived[index].age < colors.count ? colors[survived[index].age] : .red
         }
-
-//        records[generation - 1].numberFromPrevious = survived.count
-
-        print(survived.count, " bugs survived to next generation.")
 
         return survived
     }
@@ -578,7 +569,7 @@ struct ContentView: View {
             angle -= 2 * .pi
         }
 
-        print("angle: ", angle)
+//        print("angle: ", angle)
 
         return angle
     }
@@ -624,11 +615,11 @@ struct ContentView: View {
 
 
                 let angle = angleBetween(point1: leaves[foundLeaf].position, point2: tempBug.position)
-                var adjustAngleBy:CGFloat = -0.1
+//                var adjustAngleBy:CGFloat = -0.1
 
-                if angle > tempBug.trueHeading() {
-                    adjustAngleBy = 0.1
-                }
+//                if angle > tempBug.trueHeading() {
+//                    adjustAngleBy = 0.1
+//                }
 
 //                print("true heading before adjust: ", tempBug.heading, ", totalSpeed: ", tempBug.totalSpeed)
 
