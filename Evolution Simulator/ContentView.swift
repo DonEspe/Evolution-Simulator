@@ -268,7 +268,7 @@ struct ContentView: View {
 
                             LineMark(
                                 x: .value("Generation", $0.generation - 1),
-                                y: .value("Total Bugs", Double($0.totalBugs) / Double(bugsMax))
+                                y: .value("Total Bugs", Double($0.totalBugs) / Double(leavesMax))// Double(bugsMax))
                             )
                             .foregroundStyle(.blue)
                             .symbol(.circle)
@@ -276,7 +276,7 @@ struct ContentView: View {
 ////
                             LineMark(
                                 x: .value("Generation", $0.generation - 1),
-                                y: .value("Bugs Survived", Double($0.numberFromPrevious) / Double(survivedMax))
+                                y: .value("Bugs Survived", Double($0.numberFromPrevious) / Double(leavesMax))//Double(survivedMax))
                             )
                             .foregroundStyle(.purple)
                             .symbol(.circle)
@@ -294,6 +294,7 @@ struct ContentView: View {
 
                         }
                         .chartYAxis {
+                            
                             let defaultStride = Array(stride(from: 0, through: 1, by: 1.0 / strideBy))
                             let leavesStride = Array(stride(from: Double(leavesMin),
                                                            through: Double(leavesMax),
@@ -303,6 +304,7 @@ struct ContentView: View {
                                 AxisGridLine()
                                 let value = leavesStride[axis.index]
                                 AxisValueLabel("\(String(format: "%2.0F", value))", centered: false)
+                                    .foregroundStyle(Color.green)// <= change the style of the label
                             }
 
                             let movesStride = Array(stride(from: 0.0,
