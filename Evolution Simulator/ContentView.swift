@@ -6,9 +6,11 @@
 //
 
 import SwiftUI
+import Charts
 
 let playSize = CGSize(width: 330, height: 310)
 let buffer = CGFloat(20.0)
+let strideBy = 6.0
 
 struct ContentView: View {
     let timer = Timer.publish(every: 0.04, on: .main, in: .common).autoconnect()
@@ -23,6 +25,7 @@ struct ContentView: View {
 
     @State var paused = false
     @State var showingPopover = false
+    @State var showChart = true
     @State var tappedBug = UUID()
     @State var showHealth = true
     @State var showSightLines = false
@@ -115,7 +118,6 @@ struct ContentView: View {
                                 .rotationEffect(Angle(radians: bug.trueHeading()), anchor: .center)
                                 .foregroundColor(.blue)
                                 .position(x: bug.position.x , y: bug.position.y)
-
 
                             Rectangle()
                                 .trim(from: 0, to: 0.5)
@@ -233,14 +235,103 @@ struct ContentView: View {
                         showingPopover = false
                     }
                 } else {
-                    VStack(alignment: .center) {
-                        Spacer()
-                            .frame(height: 20)
-                        Text("Records:")
-                            .font(.title)
-                            .fontWeight(.bold)
-                        List(records) { record in
-                            GenerationView(record: record)
+
+                    if showChart {
+                        let leavesTemp = records.map { $0.totalLeaves }
+                        let leavesMin = 0 // leaves.min() ?? 0
+                        let leavesMax = leavesTemp.max() ?? 1
+
+                        let bugsTemp = records.map { $0.totalLeaves }
+                        let bugsMin = bugsTemp.min() ?? 0
+                        let bugsMax =  bugsTemp.max() ?? 1
+
+                        let survivedTemp = records.map { $0.totalLeaves }
+                        let survivedMin = survivedTemp.min() ?? 0
+                        let survivedMax = 20 //survivedTemp.max() ?? 0
+
+
+                        let highestTemp = records.map { $0.highestMoves }
+                        let useHighestMoves = highestTemp.max() ?? 100
+
+//                        let useHighestMoves = highestMoves > 0 ? highestMoves : 1
+
+                        Chart(records) {
+                            LineMark(
+                                x: .value("Generation", $0.generation - 1),
+//                                y: .value("Leaves", (useHighestMoves / leavesMax) *  $0.totalLeaves)
+                                y: .value("Leaves", Double($0.totalLeaves) / Double(leavesMax))
+
+                            )
+                            .foregroundStyle(.green)
+                            .symbol(.circle)
+                            .foregroundStyle(by: .value("Value", "Leaves"))
+
+                            LineMark(
+                                x: .value("Generation", $0.generation - 1),
+                                y: .value("Total Bugs", Double($0.totalBugs) / Double(bugsMax))
+                            )
+                            .foregroundStyle(.blue)
+                            .symbol(.circle)
+                            .foregroundStyle(by: .value("Value", "Bugs"))
+////
+                            LineMark(
+                                x: .value("Generation", $0.generation - 1),
+                                y: .value("Bugs Survived", Double($0.numberFromPrevious) / Double(survivedMax))
+                            )
+                            .foregroundStyle(.purple)
+                            .symbol(.circle)
+                            .foregroundStyle(by: .value("Value", "Survived"))
+
+                            LineMark(
+                                x: .value("Generation", $0.generation - 1),
+//                                y: .value("Highest Moves", $0.highestMoves)
+                                y: .value("Highest Moves", Double($0.highestMoves) / Double(useHighestMoves))
+
+                            )
+                            .foregroundStyle(.gray)
+                            .symbol(.circle)
+                            .foregroundStyle(by: .value("Value", "Highest Moves"))
+
+                        }
+                        .chartYAxis {
+                            let defaultStride = Array(stride(from: 0, through: 1, by: 1.0 / strideBy))
+                            let leavesStride = Array(stride(from: Double(leavesMin),
+                                                           through: Double(leavesMax),
+                                                           by: Double((leavesMax - leavesMin)) / (strideBy)))
+
+                            AxisMarks(position: .leading, values: defaultStride) { axis in
+                                AxisGridLine()
+                                let value = leavesStride[axis.index]
+                                AxisValueLabel("\(String(format: "%2.0F", value))", centered: false)
+                            }
+
+                            let movesStride = Array(stride(from: 0.0,
+                                                        through: Double(useHighestMoves),
+                                                           by: Double(useHighestMoves) / strideBy))
+                            AxisMarks(position: .trailing, values: defaultStride) { axis in
+                                AxisGridLine()
+                                let value = movesStride[axis.index]
+                                AxisValueLabel("\(String(format: "%2.0F", value))", centered: false)
+                            }
+                        }
+                        .chartForegroundStyleScale([
+                            "Bugs": .blue,
+                            "Leaves": .green,
+                            "Survived": .purple,
+                            "Highest Moves": .gray
+                        ])
+                        .frame(height: 200)
+                        .padding()
+                    } else {
+                        VStack(alignment: .center) {
+                            Spacer()
+                                .frame(height: 20)
+                            Text("Records:")
+                                .font(.title)
+                                .fontWeight(.bold)
+                            List(records) { record in
+                                GenerationView(record: record)
+                            }
                         }
                     }
                 }
