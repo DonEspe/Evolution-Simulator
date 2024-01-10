@@ -12,6 +12,14 @@ let playSize = CGSize(width: 330, height: 310)
 let buffer = CGFloat(20.0)
 let strideBy = 6.0
 
+enum SecondaryViewType {
+    case bug
+    case generations
+    case graph
+}
+
+
+
 struct ContentView: View {
     let timer = Timer.publish(every: 0.04, on: .main, in: .common).autoconnect()
 
@@ -24,8 +32,9 @@ struct ContentView: View {
     @State var moves = 0
 
     @State var paused = false
-    @State var showingPopover = false
-    @State var showChart = true
+    //    @State var showingPopover = false
+    @State var secondaryView: SecondaryViewType = .graph
+    //    @State var showChart = true
     @State var tappedBug = UUID()
     @State var showHealth = true
     @State var showSightLines = false
@@ -39,14 +48,14 @@ struct ContentView: View {
                 if !records.isEmpty {
                     Text("Oldest: \(records[generation - 1].oldestBug)")
                 }
-//                Spacer()
+                //                Spacer()
                 Text("Highest: \(highestMoves)")
                     .font(.monospaced(.body)())
                     .padding(.horizontal)
-//                Spacer()
-//                if !records.isEmpty {
-//                    Text("Collisions: \(records[generation - 1].collisions)")
-//                }
+                //                Spacer()
+                //                if !records.isEmpty {
+                //                    Text("Collisions: \(records[generation - 1].collisions)")
+                //                }
             }
 
             HStack {
@@ -74,11 +83,11 @@ struct ContentView: View {
             }
             HStack {
                 Toggle("Pause", isOn: $paused)
-//                Button("Pause") {
-//                    paused.toggle()
-//                }
-//                .font(.title)
-//                .foregroundColor(paused ? .gray : .blue)
+                //                Button("Pause") {
+                //                    paused.toggle()
+                //                }
+                //                .font(.title)
+                //                .foregroundColor(paused ? .gray : .blue)
 
                 Toggle("Show Health", isOn: $showHealth)
                 Toggle("Show Sight", isOn: $showSightLines)
@@ -108,7 +117,8 @@ struct ContentView: View {
                             .position(bug.position)
                             .onTapGesture { pressed in
                                 tappedBug = bug.id
-                                showingPopover = true
+                                secondaryView = .bug
+                                //                                showingPopover = true
                             }
 
                         if bug.seeOnlyAhead && bug.moveTowardLeaf && showSightLines {
@@ -139,8 +149,6 @@ struct ContentView: View {
                             .position(bug.position)
                             .foregroundStyle(bug.bugsSpawned > 0 ? .white : .clear)
 
-//                            .foregroundStyle(bug.findClosest ? .green : .blue)
-
                         Circle()
                             .stroke(lineWidth: 2.0)
                             .frame(width: 8, height: 8)
@@ -148,7 +156,7 @@ struct ContentView: View {
                             .foregroundStyle(bug.spawnedBy != nil ? .yellow : .clear)
                         //                            .foregroundStyle(bug.findClosest ? .green : .blue)
 
-                        if tappedBug == bug.id && showingPopover {
+                        if tappedBug == bug.id {
                             Circle()
                                 .stroke(lineWidth: 1.0)
                                 .frame(width: 33, height: 33)
@@ -174,169 +182,131 @@ struct ContentView: View {
             }
             .animation(.linear, value: colony)
 
-            if showingPopover, let showBug = findBug(withId: tappedBug, in: colony) {
-                    let displayBug = colony[showBug]
+            switch secondaryView {
+                case .bug:
                     VStack {
                         Spacer()
                             .frame(height: 20)
                         Text("Clicked on:")
                             .font(.title)
                             .fontWeight(.bold)
-                        HStack {
-                            Text("Color: \(displayBug.color.description.capitalized)")
-                            Spacer()
-                            Text("Age: \(displayBug.age)")
-                        }
-                        HStack {
-                            Text("Energy: \((String(format: "%0.2f", displayBug.energy)))")
-                            Text("Top Energy: \(String(format: "%0.2f", displayBug.topEnergy))")
-                        }
-                        HStack {
-                            Text("Speed: \((String(format: "%0.2f", displayBug.totalSpeed)))")
-                            Text("Speed Vector: \((String(format: "%0.2f", displayBug.speed.dx))), \((String(format: "%0.2f",displayBug.speed.dy)))")
-                        }
-                        HStack {
-                            Text("Heading: \((String(format: "%0.2f", displayBug.trueHeading() * 180 / .pi)))")
-                            Text("Sight range: \((String(format: "%0.1f", displayBug.sightRange)))")
-                        }
+                        if let showBug = findBug(withId: tappedBug, in: colony) {
+                            let displayBug = colony[showBug]
 
-                        HStack {
-                            if displayBug.moveTowardLeaf {
-                                Text("Bug Moves Toward Leaf")
-                            } 
-
-                            if displayBug.findClosest {
-                                Text("Bug Finds Closest Leaf")
+                            HStack {
+                                Text("Color: \(displayBug.color.description.capitalized)")
+                                Spacer()
+                                Text("Age: \(displayBug.age)")
                             }
-                            if displayBug.changeSpeed {
-                                Text("Bug can change speed")
+                            HStack {
+                                Text("Energy: \((String(format: "%0.2f", displayBug.energy)))")
+                                Text("Top Energy: \(String(format: "%0.2f", displayBug.topEnergy))")
+                            }
+                            HStack {
+                                Text("Speed: \((String(format: "%0.2f", displayBug.totalSpeed)))")
+                                Text("Speed Vector: \((String(format: "%0.2f", displayBug.speed.dx))), \((String(format: "%0.2f",displayBug.speed.dy)))")
+                            }
+                            HStack {
+                                Text("Heading: \((String(format: "%0.2f", displayBug.trueHeading() * 180 / .pi)))")
+                                Text("Sight range: \((String(format: "%0.1f", displayBug.sightRange)))")
+                            }
+
+                            HStack {
+                                if displayBug.moveTowardLeaf {
+                                    Text("Bug Moves Toward Leaf")
+                                }
+
+                                if displayBug.findClosest {
+                                    Text("Bug Finds Closest Leaf")
+                                }
+                                if displayBug.changeSpeed {
+                                    Text("Bug can change speed")
+                                }
+                            }
+                            if displayBug.seeOnlyAhead {
+                                Text("Bug can only see ahead")
+                            }
+                            //                        Text("Bug Finds Closest Leaf: \(displayBug.findClosest.description)")
+
+                            //                        Text("Bug Changes Speed: \(displayBug.changeSpeed.description)")
+                            Text("Leaves Collected: \(displayBug.leavesCollected)")
+                            HStack {
+                                Text("Moves: \(displayBug.moves)")
+                                Spacer()
+                                Text("Collisions: \(displayBug.collision)")
+                            }
+                            HStack {
+                                Text("Spawned: \(displayBug.bugsSpawned)")
+                                Spacer()
+                                Text("Gen #\(displayBug.genNumber)")
+                            }
+                            Spacer()
+
+                        } else {
+                            Spacer()
+                            Text("This bug has been removed.")
+                                .fontWeight(.semibold)
+                            Spacer()
+                            Text("Select a different bug.")
+                                .fontWeight(.bold)
+                            Spacer()
+                        }
+                        HStack {
+                            Button("Generation View") {
+                                secondaryView = .generations
+                            }
+                            Spacer()
+                            Button("Chart View") {
+                                secondaryView = .graph
                             }
                         }
-                        if displayBug.seeOnlyAhead {
-                            Text("Bug can only see ahead")
+                        .padding(.horizontal)
+                    }
+//                    .onTapGesture {
+//                        secondaryView = .generations
+//                        //                        showingPopover = false
+//                    }
+                case .generations:
+                    VStack(alignment: .center, spacing: 0) {
+                        Spacer()
+                            .frame(height: 40)
+                        Text("Records:")
+                            .font(.title)
+                            .fontWeight(.bold)
+                        List(records) { record in
+                            GenerationView(record: record)
                         }
-//                        Text("Bug Finds Closest Leaf: \(displayBug.findClosest.description)")
-
-//                        Text("Bug Changes Speed: \(displayBug.changeSpeed.description)")
-                        Text("Leaves Collected: \(displayBug.leavesCollected)")
-                        HStack {
-                            Text("Moves: \(displayBug.moves)")
-                            Spacer()
-                            Text("Collisions: \(displayBug.collision)")
-                        }
-                        HStack {
-                            Text("Spawned: \(displayBug.bugsSpawned)")
-                            Spacer()
-                            Text("Gen #\(displayBug.genNumber)")
+                    }
+                    HStack {
+                        Button("Chart View") {
+                            secondaryView = .graph
                         }
                         Spacer()
-                    }
-                    .onTapGesture {
-                        showingPopover = false
-                    }
-                } else {
-
-                    if showChart {
-                        let leavesTemp = records.map { $0.totalLeaves }
-                        let leavesMin = 0 // leaves.min() ?? 0
-                        let leavesMax = leavesTemp.max() ?? 1
-
-                        let bugsTemp = records.map { $0.totalLeaves }
-                        let bugsMin = bugsTemp.min() ?? 0
-                        let bugsMax =  bugsTemp.max() ?? 1
-
-                        let survivedTemp = records.map { $0.totalLeaves }
-                        let survivedMin = survivedTemp.min() ?? 0
-                        let survivedMax = 20 //survivedTemp.max() ?? 0
-
-
-                        let highestTemp = records.map { $0.highestMoves }
-                        let useHighestMoves = highestTemp.max() ?? 100
-
-//                        let useHighestMoves = highestMoves > 0 ? highestMoves : 1
-
-                        Chart(records) {
-                            LineMark(
-                                x: .value("Generation", $0.generation - 1),
-//                                y: .value("Leaves", (useHighestMoves / leavesMax) *  $0.totalLeaves)
-                                y: .value("Leaves", Double($0.totalLeaves) / Double(leavesMax))
-
-                            )
-                            .foregroundStyle(.green)
-                            .symbol(.circle)
-                            .foregroundStyle(by: .value("Value", "Leaves"))
-
-                            LineMark(
-                                x: .value("Generation", $0.generation - 1),
-                                y: .value("Total Bugs", Double($0.totalBugs) / Double(leavesMax))// Double(bugsMax))
-                            )
-                            .foregroundStyle(.blue)
-                            .symbol(.circle)
-                            .foregroundStyle(by: .value("Value", "Bugs"))
-////
-                            LineMark(
-                                x: .value("Generation", $0.generation - 1),
-                                y: .value("Bugs Survived", Double($0.numberFromPrevious) / Double(leavesMax))//Double(survivedMax))
-                            )
-                            .foregroundStyle(.purple)
-                            .symbol(.circle)
-                            .foregroundStyle(by: .value("Value", "Survived"))
-
-                            LineMark(
-                                x: .value("Generation", $0.generation - 1),
-//                                y: .value("Highest Moves", $0.highestMoves)
-                                y: .value("Highest Moves", Double($0.highestMoves) / Double(useHighestMoves))
-
-                            )
-                            .foregroundStyle(.gray)
-                            .symbol(.circle)
-                            .foregroundStyle(by: .value("Value", "Highest Moves"))
-
-                        }
-                        .chartYAxis {
-                            
-                            let defaultStride = Array(stride(from: 0, through: 1, by: 1.0 / strideBy))
-                            let leavesStride = Array(stride(from: Double(leavesMin),
-                                                           through: Double(leavesMax),
-                                                           by: Double((leavesMax - leavesMin)) / (strideBy)))
-
-                            AxisMarks(position: .leading, values: defaultStride) { axis in
-                                AxisGridLine()
-                                let value = leavesStride[axis.index]
-                                AxisValueLabel("\(String(format: "%2.0F", value))", centered: false)
-                                    .foregroundStyle(Color.green)// <= change the style of the label
-                            }
-
-                            let movesStride = Array(stride(from: 0.0,
-                                                        through: Double(useHighestMoves),
-                                                           by: Double(useHighestMoves) / strideBy))
-                            AxisMarks(position: .trailing, values: defaultStride) { axis in
-                                AxisGridLine()
-                                let value = movesStride[axis.index]
-                                AxisValueLabel("\(String(format: "%2.0F", value))", centered: false)
-                            }
-                        }
-                        .chartForegroundStyleScale([
-                            "Bugs": .blue,
-                            "Leaves": .green,
-                            "Survived": .purple,
-                            "Highest Moves": .gray
-                        ])
-                        .frame(height: 200)
-                        .padding()
-                    } else {
-                        VStack(alignment: .center) {
-                            Spacer()
-                                .frame(height: 20)
-                            Text("Records:")
-                                .font(.title)
-                                .fontWeight(.bold)
-                            List(records) { record in
-                                GenerationView(record: record)
-                            }
+                        Button("Bug View") {
+                            secondaryView = .bug
                         }
                     }
-                }
+                    .padding(.horizontal)
+                case .graph:
+                    VStack(alignment: .center, spacing: 0) {
+                        Spacer()
+                            .frame(height: 30)
+                        ChartView(records: records)
+                            .frame(height: 230)
+                            .padding()
+                            .border(.blue.opacity(0.6))
+                    }
+                    HStack {
+                        Button("Generation View") {
+                            secondaryView = .generations
+                        }
+                        Spacer()
+                        Button("Bug View") {
+                            secondaryView = .bug
+                        }
+                    }
+                    .padding(.horizontal)
+            }
         }
         .onAppear {
             // Do stuff when view first appears...
@@ -346,7 +316,7 @@ struct ContentView: View {
                 return
             }
 
-//            if colony.isEmpty {
+            //            if colony.isEmpty {
             if numberAlive() == 0 {
                 print("new generation")
 
@@ -360,13 +330,13 @@ struct ContentView: View {
 
                 moves = 0
                 generation += 1
-//                print("tracking: ", records)
+                //                print("tracking: ", records)
                 records.append(GenerationTracking(generation: generation))
                 records[generation - 1].numberFromPrevious = survivedBugs.count
-//                colony = populateColony(numberOfBugs: 5 + Int.random(in: 0...10))  //TODO: adjust for bugs carried over
+                //                colony = populateColony(numberOfBugs: 5 + Int.random(in: 0...10))  //TODO: adjust for bugs carried over
 
                 colony = populateColony(numberOfBugs: Int.random(in: 1...5))
-//                colony = populateColony(numberOfBugs: 1)
+                //                colony = populateColony(numberOfBugs: 1)
 
                 //MARK: Insert top bugs from previous generation + Add to age
 
@@ -374,9 +344,9 @@ struct ContentView: View {
                     colony.append(bug)
                 }
 
-//                colony = populateColony(numberOfBugs: 3)
+                //                colony = populateColony(numberOfBugs: 3)
                 leaves = spawnLeaves(number: 5 + Int.random(in: -4...5) + (colony.count / 2))
-//                leaves = spawnLeaves(number: 20)
+                //                leaves = spawnLeaves(number: 20)
 
                 records[generation - 1].totalLeaves = leaves.count
                 records[generation - 1].totalBugs = numberAlive() //colony.count
@@ -392,16 +362,16 @@ struct ContentView: View {
                         }
                     }
 
-//                        if let spawnedBy = bug.spawnedBy {
-//                            if let parentIndex = findBug(withId: spawnedBy) {
-//                                print("bug id spawned by: ", spawnedBy)
-//                                self.colony[parentIndex].bugsSpawned += 1
-//                            }
-//                        }
+                    //                        if let spawnedBy = bug.spawnedBy {
+                    //                            if let parentIndex = findBug(withId: spawnedBy) {
+                    //                                print("bug id spawned by: ", spawnedBy)
+                    //                                self.colony[parentIndex].bugsSpawned += 1
+                    //                            }
+                    //                        }
 
                     if bug.alive && bug.age > records[generation - 1].oldestBug {
                         records[generation - 1].oldestBug = bug.age
-//                        print("updated age to ", bug.age)
+                        //                        print("updated age to ", bug.age)
                     }
                 }
             }
@@ -463,7 +433,7 @@ struct ContentView: View {
             if numberAlive() == 1 {  //colony.count
                 records[generation - 1].lastCouldSee = colony[index].moveTowardLeaf
             }
-//            colony.remove(at: index)
+            //            colony.remove(at: index)
         }
     }
 
@@ -474,7 +444,7 @@ struct ContentView: View {
             let bugPosition = CGPoint(x: CGFloat.random(in: buffer...(playSize.width - buffer)),
                                       y: CGFloat.random(in: buffer...(playSize.height - buffer)))
 
-//            var bug = Bug(position: CGPoint(x: 20 * Double(i) + buffer, y: 20 * Double(i) + buffer), color: .blue)
+            //            var bug = Bug(position: CGPoint(x: 20 * Double(i) + buffer, y: 20 * Double(i) + buffer), color: .blue)
             var bug = Bug(position: bugPosition, color: .blue)
             bug.speed.dx = 5 + Double.random(in: -5...5)
             bug.speed.dy = 5 + Double.random(in: -5...5)
@@ -553,12 +523,12 @@ struct ContentView: View {
         //find first
         var leavesSeen = [(number: Int, distance: CGFloat)]()
         for (index, leaf) in leaves.enumerated() { //FIXME: maybe record all leaves found and then check if distance in range
-//            print("bug range: ", bug.sightRange + bug.totalSpeed,", leaf distance: ", distance(bug.position, leaf.position),", inRange: ", inRange)
+            //            print("bug range: ", bug.sightRange + bug.totalSpeed,", leaf distance: ", distance(bug.position, leaf.position),", inRange: ", inRange)
             if distance(bug.position, leaf.position) < inRange + bug.totalSpeed {
-//                print("leaf in range...")
+                //                print("leaf in range...")
                 if ignoreSight || !bug.seeOnlyAhead || abs((angleBetween(point1: bug.position, point2: leaf.position) - bug.trueHeading())) < bug.sightAngle {
                     leavesSeen.append((number: index, distance(bug.position, leaf.position)))
-//                    print("found leaf")
+                    //                    print("found leaf")
                     if !bug.findClosest {
                         return index
                     }
@@ -567,7 +537,7 @@ struct ContentView: View {
         }
 
         guard !leavesSeen.isEmpty else { return nil }
-//        print("leaves seen: ", leavesSeen.count)
+        //        print("leaves seen: ", leavesSeen.count)
 
         // Find closest leaf
         var shortestDistance = leavesSeen.first!.distance  //TODO: modify to find highest energy level
@@ -578,7 +548,7 @@ struct ContentView: View {
                 useLeaf = leaf.number
             }
         }
-//        print("aim toward leaf #", useLeaf," at a distance of ", shortestDistance)
+        //        print("aim toward leaf #", useLeaf," at a distance of ", shortestDistance)
         return useLeaf
     }
 
@@ -621,7 +591,7 @@ struct ContentView: View {
 
                 tempBug.age = 0
                 survived.append(tempBug)
-//                print("bug spawned new bug. Gen #", tempBug.genNumber)
+                //                print("bug spawned new bug. Gen #", tempBug.genNumber)
             }
         }
 
@@ -662,7 +632,7 @@ struct ContentView: View {
             angle -= 2 * .pi
         }
 
-//        print("angle: ", angle)
+        //        print("angle: ", angle)
 
         return angle
     }
@@ -696,35 +666,35 @@ struct ContentView: View {
             tempBug.speed.dx += Double.random(in: -0.5...0.5)
             tempBug.speed.dy += Double.random(in: -0.5...0.5)
         }
-//        print("move bug")
-//        print("moveToward: ", tempBug.moveTowardLeaf,", findClosest: ", tempBug.findClosest)
+        //        print("move bug")
+        //        print("moveToward: ", tempBug.moveTowardLeaf,", findClosest: ", tempBug.findClosest)
 
         if tempBug.moveTowardLeaf || tempBug.findClosest {
-//            print("Bug should move toward leaf")
+            //            print("Bug should move toward leaf")
             if let foundLeaf = findLeaf(bug: tempBug, leaves: leaves, inRange: tempBug.sightRange, ignoreSight:
                                             !tempBug.seeOnlyAhead) {
-//                print("aim toward leaf")
-//                print("aim toward leaf #", foundLeaf," at a distance of ",  distance(bug.position, leaves[foundLeaf].position))
+                //                print("aim toward leaf")
+                //                print("aim toward leaf #", foundLeaf," at a distance of ",  distance(bug.position, leaves[foundLeaf].position))
 
 
                 let angle = angleBetween(point1: leaves[foundLeaf].position, point2: tempBug.position)
-//                var adjustAngleBy:CGFloat = -0.1
+                //                var adjustAngleBy:CGFloat = -0.1
 
-//                if angle > tempBug.trueHeading() {
-//                    adjustAngleBy = 0.1
-//                }
+                //                if angle > tempBug.trueHeading() {
+                //                    adjustAngleBy = 0.1
+                //                }
 
-//                print("true heading before adjust: ", tempBug.heading, ", totalSpeed: ", tempBug.totalSpeed)
+                //                print("true heading before adjust: ", tempBug.heading, ", totalSpeed: ", tempBug.totalSpeed)
 
                 let newDx = tempBug.totalSpeed * cos(angle ) //cos(tempBug.heading + adjustAngleBy - .pi / 2)// + adjustAngleBy) // cos(angle)
                 let newDy = tempBug.totalSpeed * sin(angle ) //(tempBug.heading + adjustAngleBy - .pi / 2)// + adjustAngleBy) //sin(angle)
 
                 tempBug.speed = CGVector(dx: newDx, dy: newDy)
-//                print("true heading after adjust: ", tempBug.heading, ", totalSpeed: ", tempBug.totalSpeed)
+                //                print("true heading after adjust: ", tempBug.heading, ", totalSpeed: ", tempBug.totalSpeed)
             }// else if tempBug.changeSpeed {
-//                tempBug.speed.dx += Double.random(in: -1...1)
-//                tempBug.speed.dy += Double.random(in: -1...1)
-//            }
+             //                tempBug.speed.dx += Double.random(in: -1...1)
+             //                tempBug.speed.dy += Double.random(in: -1...1)
+             //            }
         }
 
         if let avoidBug = bugInPath(bug: tempBug, colony: colony) {
@@ -757,7 +727,7 @@ struct ContentView: View {
             tempBug.position.x += tempBug.speed.dx
             tempBug.position.y += tempBug.speed.dy
 
-//            return tempBug
+            //            return tempBug
         }
 
 
@@ -792,6 +762,119 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+}
+
+struct ChartView: View {
+
+    var records = [GenerationTracking]()
+
+    var body: some View {
+        let leavesTemp = records.map { $0.totalLeaves }
+        let leavesMin = 0.0 // leaves.min() ?? 0
+        let leavesMax = leavesTemp.max() ?? 1
+
+        let bugsTemp = records.map { $0.totalBugs }
+        //        let bugsMin = bugsTemp.min() ?? 0
+        let bugsMax =  bugsTemp.max() ?? 1
+
+        let survivedTemp = records.map { $0.numberFromPrevious }
+        //        let survivedMin = survivedTemp.min() ?? 0
+        let survivedMax = survivedTemp.max() ?? 5
+
+
+        let highestTemp = records.map { $0.highestMoves }
+        let useHighestMoves = highestTemp.max() ?? 100
+
+        let useMax = Double(max(bugsMax, survivedMax, leavesMax, 1))
+        //                        let useHighestMoves = highestMoves > 0 ? highestMoves : 1
+
+        Chart(records) {
+            LineMark(
+                x: .value("Generation", $0.generation - 1),
+                y: .value("Leaves", Double($0.totalLeaves) / useMax )
+
+            )
+            .foregroundStyle(.green)
+            .symbol(.circle)
+            .foregroundStyle(by: .value("Value", "Leaves"))
+
+            LineMark(
+                x: .value("Generation", $0.generation - 1),
+                y: .value("Total Bugs", Double($0.totalBugs) / useMax)
+            )
+            .foregroundStyle(.blue)
+            .symbol(.circle)
+            .foregroundStyle(by: .value("Value", "Bugs"))
+
+            LineMark(
+                x: .value("Generation", $0.generation - 1),
+                y: .value("Bugs Survived", Double($0.numberFromPrevious) / useMax)
+            )
+            .foregroundStyle(.purple)
+            .symbol(.circle)
+            .foregroundStyle(by: .value("Value", "Survived"))
+
+            LineMark(
+                x: .value("Generation", $0.generation - 1),
+                y: .value("Oldest Bug", Double($0.oldestBug) / useMax)
+            )
+            .foregroundStyle(.yellow)
+            .symbol(.circle)
+            .foregroundStyle(by: .value("Value", "Oldest"))
+
+            LineMark(
+                x: .value("Generation", $0.generation - 1),
+                y: .value("Highest Moves", Double($0.highestMoves) / Double(useHighestMoves))
+
+            )
+            .foregroundStyle(.gray)
+            .symbol(.circle)
+            .foregroundStyle(by: .value("Value", "Highest Moves"))
+
+            LineMark(
+                x: .value("Generation", $0.generation - 1),
+                y: .value("Average Moves", Double($0.averageMoves) / Double(useHighestMoves))
+
+            )
+            .foregroundStyle(Color.teal)
+            .symbol(.circle)
+            .foregroundStyle(by: .value("Value", "Avg Moves"))
+
+        }
+        .chartYAxis {
+
+            let defaultStride = Array(stride(from: 0, through: 1, by: 1.0 / strideBy))
+            let leavesStride = Array(stride(from: Double(leavesMin),
+                                            through: Double(useMax),
+                                            by: Double((useMax - leavesMin)) / (strideBy)))
+
+            AxisMarks(position: .leading, values: defaultStride) { axis in
+                AxisGridLine()
+                let value = leavesStride[axis.index]
+                AxisValueLabel("\(String(format: "%2.0F", value))", centered: false)
+                    .foregroundStyle(Color.green)
+            }
+
+            let movesStride = Array(stride(from: 0.0,
+                                           through: Double(useHighestMoves),
+                                           by: Double(useHighestMoves) / strideBy))
+            AxisMarks(position: .trailing, values: defaultStride) { axis in
+                AxisGridLine()
+                let value = movesStride[axis.index]
+                AxisValueLabel("\(String(format: "%2.0F", value))", centered: false)
+            }
+        }
+        .chartForegroundStyleScale([
+            "Bugs": .blue,
+            "Leaves": .green,
+            "Survived": .purple,
+            "Oldest": .yellow,
+            "Highest Moves": .gray,
+            "Avg Moves": .teal
+
+        ])
+
+    }
 }
 
 struct GenerationView: View {
@@ -844,8 +927,8 @@ struct GenerationView: View {
                 Spacer()
                 Text("Top moves: \(record.highestMoves)")
             }
-            
+
         }
-        .font(.monospaced(.body)())
+        .font(.monospaced(.caption)())
     }
 }
