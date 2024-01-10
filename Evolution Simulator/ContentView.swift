@@ -118,6 +118,7 @@ struct ContentView: View {
                             .onTapGesture { pressed in
                                 tappedBug = bug.id
                                 secondaryView = .bug
+                                //                                showingPopover = true
                             }
 
                         if bug.seeOnlyAhead && bug.moveTowardLeaf && showSightLines {
