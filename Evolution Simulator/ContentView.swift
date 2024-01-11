@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Charts
+import Subsonic
 
 let playSize = CGSize(width: 330, height: 310)
 let buffer = CGFloat(20.0)
@@ -18,8 +19,6 @@ enum SecondaryViewType {
     case generations
     case graph
 }
-
-
 
 struct ContentView: View {
     let timer = Timer.publish(every: 0.04, on: .main, in: .common).autoconnect()
@@ -40,6 +39,10 @@ struct ContentView: View {
     @State var tappedBug = UUID()
     @State var showHealth = true
     @State var showSightLines = false
+
+    @StateObject private var eatSound = SubsonicPlayer(sound: "eat.mp3")
+    @StateObject private var dieSound = SubsonicPlayer(sound: "drop_002.mp3")
+
 
     var body: some View {
         VStack(alignment: .center) {
@@ -419,6 +422,8 @@ struct ContentView: View {
                     records[generation - 1].bugsCollectedLeaves += 1
                 }
                 leaves.remove(at: foundLeafIndex)
+                //TODO: Play eat sound...
+                eatSound.play()
             }
 
             if colony[i].alive {
@@ -426,6 +431,7 @@ struct ContentView: View {
                 if colony[i].energy <= 0 {
                     bugsToRemove.append(i)
                     colony[i].alive = false
+                    dieSound.play()
                     if colony[i].moves < records[generation - 1].minMoves || records[generation - 1].minMoves == 0 {
                         records[generation - 1].minMoves = colony[i].moves
                     }
@@ -796,7 +802,8 @@ struct ChartView: View {
         let highestTemp = records.map { $0.highestMoves }
         let useHighestMoves = highestTemp.max() ?? 100
 
-        let useMax = Double(max(bugsMax, survivedMax, leavesMax, 1))
+        var useMax = Double(max(bugsMax, survivedMax, leavesMax, 14))
+
         //                        let useHighestMoves = highestMoves > 0 ? highestMoves : 1
 
         Chart(records) {
@@ -898,10 +905,6 @@ struct ChartView: View {
 
         ])
 
-    }
-
-    func moveScroll() -> Int {
-        return records.count
     }
 }
 

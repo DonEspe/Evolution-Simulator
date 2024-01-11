@@ -3,13 +3,17 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		FE59156F2B1BCCAE00944817 /* GenerationTracking.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE59156E2B1BCCAD00944817 /* GenerationTracking.swift */; };
 		FE98E2BA2B1945C20060BF10 /* Leaf.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE98E2B92B1945C20060BF10 /* Leaf.swift */; };
 		FEC683142B4F9B1F0061C1D3 /* GeometryStuff.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEC683132B4F9B1F0061C1D3 /* GeometryStuff.swift */; };
+		FEC683162B5096B10061C1D3 /* eat.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = FEC683152B5096B10061C1D3 /* eat.mp3 */; };
+		FEC683182B5099BE0061C1D3 /* drop_002.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = FEC683172B5099BE0061C1D3 /* drop_002.mp3 */; };
+		FEC6831A2B5099D60061C1D3 /* glass_002.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = FEC683192B5099D60061C1D3 /* glass_002.mp3 */; };
+		FEC683292B50A4970061C1D3 /* Subsonic in Frameworks */ = {isa = PBXBuildFile; productRef = FEC683282B50A4970061C1D3 /* Subsonic */; };
 		FEEEA5872B15667900503680 /* Evolution_SimulatorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEEEA5862B15667900503680 /* Evolution_SimulatorApp.swift */; };
 		FEEEA5892B15667900503680 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEEEA5882B15667900503680 /* ContentView.swift */; };
 		FEEEA58B2B15667B00503680 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FEEEA58A2B15667B00503680 /* Assets.xcassets */; };
@@ -22,6 +26,9 @@
 		FE59156E2B1BCCAD00944817 /* GenerationTracking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerationTracking.swift; sourceTree = "<group>"; };
 		FE98E2B92B1945C20060BF10 /* Leaf.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Leaf.swift; sourceTree = "<group>"; };
 		FEC683132B4F9B1F0061C1D3 /* GeometryStuff.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeometryStuff.swift; sourceTree = "<group>"; };
+		FEC683152B5096B10061C1D3 /* eat.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = eat.mp3; sourceTree = "<group>"; };
+		FEC683172B5099BE0061C1D3 /* drop_002.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = drop_002.mp3; sourceTree = "<group>"; };
+		FEC683192B5099D60061C1D3 /* glass_002.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = glass_002.mp3; sourceTree = "<group>"; };
 		FEEEA5832B15667900503680 /* Evolution Simulator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Evolution Simulator.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		FEEEA5862B15667900503680 /* Evolution_SimulatorApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Evolution_SimulatorApp.swift; sourceTree = "<group>"; };
 		FEEEA5882B15667900503680 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -36,17 +43,26 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FEC683292B50A4970061C1D3 /* Subsonic in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		FEC683272B50A4970061C1D3 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		FEEEA57A2B15667900503680 = {
 			isa = PBXGroup;
 			children = (
 				FEEEA5852B15667900503680 /* Evolution Simulator */,
 				FEEEA5842B15667900503680 /* Products */,
+				FEC683272B50A4970061C1D3 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -69,6 +85,9 @@
 				FEEEA5962B15AFE100503680 /* CGPoint-Helpers.swift */,
 				FEC683132B4F9B1F0061C1D3 /* GeometryStuff.swift */,
 				FEEEA58A2B15667B00503680 /* Assets.xcassets */,
+				FEC683192B5099D60061C1D3 /* glass_002.mp3 */,
+				FEC683172B5099BE0061C1D3 /* drop_002.mp3 */,
+				FEC683152B5096B10061C1D3 /* eat.mp3 */,
 				FEEEA58C2B15667B00503680 /* Preview Content */,
 			);
 			path = "Evolution Simulator";
@@ -98,6 +117,9 @@
 			dependencies = (
 			);
 			name = "Evolution Simulator";
+			packageProductDependencies = (
+				FEC683282B50A4970061C1D3 /* Subsonic */,
+			);
 			productName = "Evolution Simulator";
 			productReference = FEEEA5832B15667900503680 /* Evolution Simulator.app */;
 			productType = "com.apple.product-type.application";
@@ -126,6 +148,9 @@
 				Base,
 			);
 			mainGroup = FEEEA57A2B15667900503680;
+			packageReferences = (
+				FEC683262B50A3E20061C1D3 /* XCLocalSwiftPackageReference "Evolution Simulator" */,
+			);
 			productRefGroup = FEEEA5842B15667900503680 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -140,8 +165,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FEC683182B5099BE0061C1D3 /* drop_002.mp3 in Resources */,
+				FEC683162B5096B10061C1D3 /* eat.mp3 in Resources */,
 				FEEEA58E2B15667B00503680 /* Preview Assets.xcassets in Resources */,
 				FEEEA58B2B15667B00503680 /* Assets.xcassets in Resources */,
+				FEC6831A2B5099D60061C1D3 /* glass_002.mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -366,6 +394,21 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		FEC683262B50A3E20061C1D3 /* XCLocalSwiftPackageReference "Evolution Simulator" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "Evolution Simulator";
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		FEC683282B50A4970061C1D3 /* Subsonic */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FEC683262B50A3E20061C1D3 /* XCLocalSwiftPackageReference "Evolution Simulator" */;
+			productName = Subsonic;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = FEEEA57B2B15667900503680 /* Project object */;
 }
