@@ -83,12 +83,6 @@ struct ContentView: View {
             }
             HStack {
                 Toggle("Pause", isOn: $paused)
-                //                Button("Pause") {
-                //                    paused.toggle()
-                //                }
-                //                .font(.title)
-                //                .foregroundColor(paused ? .gray : .blue)
-
                 Toggle("Show Health", isOn: $showHealth)
                 Toggle("Show Sight", isOn: $showSightLines)
             }
@@ -109,46 +103,47 @@ struct ContentView: View {
                                 .position(CGPoint(x: bug.position.x + ( adjustment) / 2, y: bug.position.y - 20))
                                 .foregroundColor(.black)
                         }
+                            Image(systemName: "ladybug") //"microbe")
+                                .imageScale(.large)
+                                .rotationEffect(Angle(radians: bug.heading))
+                                .foregroundStyle(bug.energy > 2 ? bug.color : .gray)
+                                .position(bug.position)
+                                .onTapGesture { pressed in
+                                    tappedBug = bug.id
+                                    secondaryView = .bug
+                                }
 
-                        Image(systemName: "ladybug") //"microbe")
-                            .imageScale(.large)
-                            .rotationEffect(Angle(radians: bug.heading))
-                            .foregroundStyle(bug.energy > 2 ? bug.color : .gray)
-                            .position(bug.position)
-                            .onTapGesture { pressed in
-                                tappedBug = bug.id
-                                secondaryView = .bug
-                                //                                showingPopover = true
-                            }
-
+// draw lines to show sight area.
                         if bug.seeOnlyAhead && bug.moveTowardLeaf && showSightLines {
                             Rectangle()
-                                .trim(from: 0, to: 0.5)
-                                .frame(width: 2, height: 40)
+                                .frame(width: 2, height: bug.sightRange, alignment: .top)
+                                .padding(.bottom, bug.sightRange)
+                                .rotationEffect(Angle(radians: bug.trueHeading() - (bug.sightAngle / 2)), anchor: .center)
+                                .position(x: bug.position.x , y: bug.position.y)
+                                .foregroundColor(.green.opacity(0.5))
+
+
+                            Rectangle()
+                                .frame(width: 2, height: 40, alignment: .center)
+                                .padding(.bottom, 40)
                                 .rotationEffect(Angle(radians: bug.trueHeading()), anchor: .center)
-                                .foregroundColor(.blue)
+                                .foregroundColor(.blue.opacity(0.5))
                                 .position(x: bug.position.x , y: bug.position.y)
 
                             Rectangle()
-                                .trim(from: 0, to: 0.5)
-                                .frame(width: 2, height: bug.sightRange)
-                                .rotationEffect(Angle(radians: bug.trueHeading() - bug.sightAngle), anchor: .center)
-                                .foregroundColor(.green)
-                                .position(x: bug.position.x , y: bug.position.y)
-
-                            Rectangle()
-                                .trim(from: 0, to: 0.5)
-                                .frame(width: 2, height: bug.sightRange)
-                                .rotationEffect(Angle(radians: bug.trueHeading() + bug.sightAngle), anchor: .center)
-                                .foregroundColor(.green)
+                                .frame(width: 2, height: bug.sightRange, alignment: .bottom)
+                                .padding(.bottom, (bug.sightRange))
+                                .rotationEffect(Angle(radians: bug.trueHeading() + (bug.sightAngle / 2)), anchor: .center)
+                                .foregroundColor(.green.opacity(0.5))
                                 .position(x: bug.position.x , y: bug.position.y)
                         }
+// put white circle for parent bugs
                         Circle()
                             .stroke(lineWidth: 3.0)
                             .frame(width: 8, height: 8)
                             .position(bug.position)
                             .foregroundStyle(bug.bugsSpawned > 0 ? .white : .clear)
-
+// put yellow circle for child bugs
                         Circle()
                             .stroke(lineWidth: 2.0)
                             .frame(width: 8, height: 8)
@@ -210,6 +205,7 @@ struct ContentView: View {
                                 Text("Heading: \((String(format: "%0.2f", displayBug.trueHeading() * 180 / .pi)))")
                                 Text("Sight range: \((String(format: "%0.1f", displayBug.sightRange)))")
                             }
+                            Text("Sight angle: \((String(format: "%0.1f", (displayBug.sightAngle * 180) / .pi)))")
 
                             HStack {
                                 if displayBug.moveTowardLeaf {
@@ -262,7 +258,7 @@ struct ContentView: View {
                         }
                         .padding(.horizontal)
                     }
-//                    .onTapGesture {
+                    .font(.subheadline)//                    .onTapGesture {
 //                        secondaryView = .generations
 //                        //                        showingPopover = false
 //                    }
@@ -451,6 +447,8 @@ struct ContentView: View {
             bug.color = bug.age < colors.count ? colors[bug.age] : .red  //  colors.randomElement() ?? .blue
             bug.changeSpeed = Bool.random()
             bug.seeOnlyAhead = Bool.random()
+            bug.sightRange = CGFloat.random(in: 25...200)
+            bug.sightAngle = CGFloat.random(in: 0.44...2.8)
             bug.findClosest = Bool.random()
             bug.moveTowardLeaf = Bool.random()
             if bug.findClosest {
@@ -932,3 +930,4 @@ struct GenerationView: View {
         .font(.monospaced(.caption)())
     }
 }
+
