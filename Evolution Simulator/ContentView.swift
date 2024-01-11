@@ -11,6 +11,7 @@ import Charts
 let playSize = CGSize(width: 330, height: 310)
 let buffer = CGFloat(20.0)
 let strideBy = 6.0
+let testing = false
 
 enum SecondaryViewType {
     case bug
@@ -34,6 +35,7 @@ struct ContentView: View {
     @State var paused = false
     //    @State var showingPopover = false
     @State var secondaryView: SecondaryViewType = .graph
+    @State var scrollPosition = 0
     //    @State var showChart = true
     @State var tappedBug = UUID()
     @State var showHealth = true
@@ -201,11 +203,12 @@ struct ContentView: View {
                                 Text("Speed: \((String(format: "%0.2f", displayBug.totalSpeed)))")
                                 Text("Speed Vector: \((String(format: "%0.2f", displayBug.speed.dx))), \((String(format: "%0.2f",displayBug.speed.dy)))")
                             }
+                            Text("Heading: \((String(format: "%0.2f", displayBug.trueHeading() * 180 / .pi)))")
                             HStack {
-                                Text("Heading: \((String(format: "%0.2f", displayBug.trueHeading() * 180 / .pi)))")
                                 Text("Sight range: \((String(format: "%0.1f", displayBug.sightRange)))")
+                                Text("Sight angle: \((String(format: "%0.1f", (displayBug.sightAngle * 180) / .pi)))")
                             }
-                            Text("Sight angle: \((String(format: "%0.1f", (displayBug.sightAngle * 180) / .pi)))")
+
 
                             HStack {
                                 if displayBug.moveTowardLeaf {
@@ -340,9 +343,14 @@ struct ContentView: View {
                     colony.append(bug)
                 }
 
-                //                colony = populateColony(numberOfBugs: 3)
+
                 leaves = spawnLeaves(number: 5 + Int.random(in: -4...5) + (colony.count / 2))
                 //                leaves = spawnLeaves(number: 20)
+
+                if testing {
+                    colony = populateColony(numberOfBugs: 1)
+                    leaves = spawnLeaves(number: 1)
+                }
 
                 records[generation - 1].totalLeaves = leaves.count
                 records[generation - 1].totalBugs = numberAlive() //colony.count
@@ -762,11 +770,16 @@ struct ContentView: View {
     ContentView()
 }
 
+let scrollTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+
 struct ChartView: View {
 
     var records = [GenerationTracking]()
+    @State var scrollPosition = 0
+    let chartSize = 10
 
     var body: some View {
+
         let leavesTemp = records.map { $0.totalLeaves }
         let leavesMin = 0.0 // leaves.min() ?? 0
         let leavesMax = leavesTemp.max() ?? 1
@@ -840,13 +853,12 @@ struct ChartView: View {
 
         }
         .chartYAxis {
-
             let defaultStride = Array(stride(from: 0, through: 1, by: 1.0 / strideBy))
             let leavesStride = Array(stride(from: Double(leavesMin),
                                             through: Double(useMax),
                                             by: Double((useMax - leavesMin)) / (strideBy)))
 
-            AxisMarks(position: .leading, values: defaultStride) { axis in
+            AxisMarks(preset: .aligned, position: .leading, values: defaultStride) { axis in
                 AxisGridLine()
                 let value = leavesStride[axis.index]
                 AxisValueLabel("\(String(format: "%2.0F", value))", centered: false)
@@ -856,12 +868,26 @@ struct ChartView: View {
             let movesStride = Array(stride(from: 0.0,
                                            through: Double(useHighestMoves),
                                            by: Double(useHighestMoves) / strideBy))
-            AxisMarks(position: .trailing, values: defaultStride) { axis in
+            AxisMarks(preset: .aligned, position: .trailing, values: defaultStride) { axis in
                 AxisGridLine()
                 let value = movesStride[axis.index]
                 AxisValueLabel("\(String(format: "%2.0F", value))", centered: false)
             }
         }
+        .chartXAxis {
+            AxisMarks(preset: .aligned, values: .automatic(desiredCount: chartSize))
+        }
+        .chartXVisibleDomain(length: chartSize)
+        .chartScrollableAxes(.horizontal)
+        .chartScrollPosition(x: $scrollPosition)
+        //        .chartScrollPosition(initialX: finalPostion)
+//        .onChange(of: scrollPosition) {
+//            print("Scroll position: ", scrollPosition)
+//        }
+        .onReceive(scrollTimer, perform: { _ in
+            scrollPosition = records.count
+        })
+
         .chartForegroundStyleScale([
             "Bugs": .blue,
             "Leaves": .green,
@@ -872,6 +898,10 @@ struct ChartView: View {
 
         ])
 
+    }
+
+    func moveScroll() -> Int {
+        return records.count
     }
 }
 
