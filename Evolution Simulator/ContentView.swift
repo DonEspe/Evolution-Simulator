@@ -412,7 +412,7 @@ struct ContentView: View {
 
 //        if leaves.isEmpty {
             if Int.random(in: 0...1000) > 995 {
-                let newLeaves = Int.random(in: 0...2)
+                let newLeaves = 1//Int.random(in: 0...2)
                 leaves += spawnLeaves(number: newLeaves)
                 records[generation - 1].totalLeaves += newLeaves
 
@@ -693,8 +693,13 @@ struct ContentView: View {
         }
 
         if tempBug.changeSpeed { //} && !bug.moveTowardLeaf {
-            tempBug.speed.dx += Double.random(in: -0.5...0.5)
-            tempBug.speed.dy += Double.random(in: -0.5...0.5)
+// old version:
+//            tempBug.speed.dx += Double.random(in: -0.5...0.5)
+//            tempBug.speed.dy += Double.random(in: -0.5...0.5)
+
+// new version:
+            tempBug.speed.dx += tempBug.previousChange.dx + CGFloat.random(in: -0.1...0.1)
+            tempBug.speed.dy += tempBug.previousChange.dy + CGFloat.random(in: -0.1...0.1)
         }
         //        print("move bug")
         //        print("moveToward: ", tempBug.moveTowardLeaf,", findClosest: ", tempBug.findClosest)
@@ -784,6 +789,11 @@ struct ContentView: View {
         if tempBug.position.y < buffer {
             tempBug.speed.dy = -tempBug.speed.dy
             tempBug.position.y = buffer + 3
+        }
+        if abs(tempBug.trueHeading() - bug.trueHeading()) < .pi / 4 {
+            tempBug.previousChange = CGVector(dx: tempBug.speed.dx - bug.speed.dx, dy: tempBug.speed.dy - bug.speed.dy)
+        } else {
+            tempBug.previousChange = .zero
         }
 
         return tempBug

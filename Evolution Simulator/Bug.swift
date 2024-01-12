@@ -51,6 +51,8 @@ struct Bug: Identifiable, Equatable, Hashable {
         }
     }
 
+    var previousChange: CGVector = .zero
+
     var totalSpeed: CGFloat = 0
 
     var color: Color
