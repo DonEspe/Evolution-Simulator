@@ -121,25 +121,26 @@ struct ContentView: View {
                                 }
 
 // draw lines to show sight area.
+                        if showSightLines {
+                            Rectangle()
+                                .frame(width: 2, height: bug.sightRange, alignment: .center)
+                                .padding(.bottom, bug.sightRange)
+                                .rotationEffect(Angle(radians: bug.trueHeading()), anchor: .center)
+                                .foregroundColor(.blue.opacity(0.5))
+                                .position(x: bug.position.x , y: bug.position.y)
+                        }
+
                         if bug.seeOnlyAhead && bug.moveTowardLeaf && showSightLines {
                             Rectangle()
-                                .frame(width: 2, height: bug.sightRange, alignment: .top)
-                                .padding(.bottom, bug.sightRange)
+                                .frame(width: 2, height: 40, alignment: .top)
+                                .padding(.bottom, 40)
                                 .rotationEffect(Angle(radians: bug.trueHeading() - (bug.sightAngle / 2)), anchor: .center)
                                 .position(x: bug.position.x , y: bug.position.y)
                                 .foregroundColor(.green.opacity(0.5))
 
-
                             Rectangle()
-                                .frame(width: 2, height: 40, alignment: .center)
-                                .padding(.bottom, 40)
-                                .rotationEffect(Angle(radians: bug.trueHeading()), anchor: .center)
-                                .foregroundColor(.blue.opacity(0.5))
-                                .position(x: bug.position.x , y: bug.position.y)
-
-                            Rectangle()
-                                .frame(width: 2, height: bug.sightRange, alignment: .bottom)
-                                .padding(.bottom, (bug.sightRange))
+                                .frame(width: 2, height: 40, alignment: .bottom)
+                                .padding(.bottom, (40))
                                 .rotationEffect(Angle(radians: bug.trueHeading() + (bug.sightAngle / 2)), anchor: .center)
                                 .foregroundColor(.green.opacity(0.5))
                                 .position(x: bug.position.x , y: bug.position.y)
@@ -344,7 +345,6 @@ struct ContentView: View {
                 colony = populateColony(numberOfBugs: Int.random(in: 1...5))
                 //                colony = populateColony(numberOfBugs: 1)
 
-                //MARK: Insert top bugs from previous generation + Add to age
 
                 for bug in survivedBugs {
                     colony.append(bug)
@@ -366,7 +366,7 @@ struct ContentView: View {
 
                     for checkBug in colony {
                         var count = 0
-                        while checkBug.position.distance(from: colony[index].position) < 20 && count <= 20 {
+                        while checkBug.position.distance(from: colony[index].position) < 20 && count <= 40 {
                             count += 1
                             colony[index].position = CGPoint(x: CGFloat.random(in: buffer...(playSize.width - buffer)),
                                                              y: CGFloat.random(in: buffer...(playSize.height - buffer)))
@@ -468,8 +468,10 @@ struct ContentView: View {
             let bugPosition = CGPoint(x: CGFloat.random(in: buffer...(playSize.width - buffer)),
                                       y: CGFloat.random(in: buffer...(playSize.height - buffer)))
 
+
             //            var bug = Bug(position: CGPoint(x: 20 * Double(i) + buffer, y: 20 * Double(i) + buffer), color: .blue)
             var bug = Bug(position: bugPosition, color: .blue)
+
             bug.speed.dx = 5 + Double.random(in: -5...5)
             bug.speed.dy = 5 + Double.random(in: -5...5)
             bug.color = bug.age < colors.count ? colors[bug.age] : .red  //  colors.randomElement() ?? .blue
@@ -532,14 +534,14 @@ struct ContentView: View {
         return closestBug
     }
 
-    func testCollision(bug: Bug, colony: [Bug]) -> Bool {
+    func testCollision(bug: Bug, colony: [Bug], range: CGFloat = 8.0) -> Bool {
 
         for target in colony {
             guard target.id != bug.id else {
                 continue
             }
 
-            if distance(target.position, bug.position) < 8 + bug.totalSpeed && target.alive {
+            if distance(target.position, bug.position) < range + bug.totalSpeed && target.alive {
                 return true
             }
         }
@@ -798,7 +800,7 @@ struct ChartView: View {
 
     var records = [GenerationTracking]()
     @State var scrollPosition = 0
-    let chartSize = 10
+    let chartSize = 7
 
     var body: some View {
 
