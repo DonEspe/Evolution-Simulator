@@ -233,7 +233,7 @@ struct ContentView: View {
                             //                        Text("Bug Changes Speed: \(displayBug.changeSpeed.description)")
                             Text("Leaves Collected: \(displayBug.leavesCollected)")
                             HStack {
-                                Text("Moves: \(displayBug.moves)")
+                                Text("Moves: \(displayBug.moves)\(displayBug.moves >= (records.last?.averageMoves ?? 0) ? "*":""  )")
                                 Spacer()
                                 Text("Collisions: \(displayBug.collision)")
                             }
@@ -246,7 +246,7 @@ struct ContentView: View {
 
                         } else {
                             Spacer()
-                            Text("This bug has been removed.")
+                            Text("No bug selected.")
                                 .fontWeight(.semibold)
                             Spacer()
                             Text("Select a different bug.")
@@ -406,6 +406,16 @@ struct ContentView: View {
 
         records[generation - 1].highestMoves += 1
 
+//        if leaves.isEmpty {
+            if Int.random(in: 0...1000) > 995 {
+                let newLeaves = Int.random(in: 0...2)
+                leaves += spawnLeaves(number: newLeaves)
+                records[generation - 1].totalLeaves += newLeaves
+
+                print("spawn new leaves...")
+            }
+//        }
+
         for i in 0...colony.count - 1 {
             if let foundLeafIndex = findLeaf(bug: colony[i], leaves: leaves, ignoreSight: true) {
                 records[generation - 1].leavesEaten += 1
@@ -477,6 +487,7 @@ struct ContentView: View {
 
     func spawnLeaves(number: Int) -> [Leaf] {
         var leaves = [Leaf]()
+        guard number > 0 else { return [] }
         for _ in 0...number - 1 {
             let leaf = Leaf(position: CGPoint(
                 x: CGFloat.random(in: (buffer)...(playSize.width + buffer)),
@@ -802,7 +813,7 @@ struct ChartView: View {
         let highestTemp = records.map { $0.highestMoves }
         let useHighestMoves = highestTemp.max() ?? 100
 
-        var useMax = Double(max(bugsMax, survivedMax, leavesMax, 14))
+        let useMax = Double(max(bugsMax, survivedMax, leavesMax, 15))
 
         //                        let useHighestMoves = highestMoves > 0 ? highestMoves : 1
 
