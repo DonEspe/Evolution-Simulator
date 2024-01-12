@@ -42,6 +42,8 @@ struct ContentView: View {
 
     @StateObject private var eatSound = SubsonicPlayer(sound: "eat.mp3")
     @StateObject private var dieSound = SubsonicPlayer(sound: "drop_002.mp3")
+    @StateObject private var spawnLeafSound = SubsonicPlayer(sound: "Blip_select 22.wav")
+    @StateObject private var NewGenSound = SubsonicPlayer(sound: "Random 188.wav")
 
 
     var body: some View {
@@ -322,6 +324,8 @@ struct ContentView: View {
             if numberAlive() == 0 {
                 print("new generation")
 
+                NewGenSound.play()
+
                 //MARK: Collect top bugs and allow to move to new generation
 
                 var survivedBugs = [Bug]()
@@ -488,6 +492,7 @@ struct ContentView: View {
     func spawnLeaves(number: Int) -> [Leaf] {
         var leaves = [Leaf]()
         guard number > 0 else { return [] }
+        spawnLeafSound.play()
         for _ in 0...number - 1 {
             let leaf = Leaf(position: CGPoint(
                 x: CGFloat.random(in: (buffer)...(playSize.width + buffer)),

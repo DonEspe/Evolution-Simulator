@@ -14,6 +14,11 @@
 		FEC683182B5099BE0061C1D3 /* drop_002.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = FEC683172B5099BE0061C1D3 /* drop_002.mp3 */; };
 		FEC6831A2B5099D60061C1D3 /* glass_002.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = FEC683192B5099D60061C1D3 /* glass_002.mp3 */; };
 		FEC683292B50A4970061C1D3 /* Subsonic in Frameworks */ = {isa = PBXBuildFile; productRef = FEC683282B50A4970061C1D3 /* Subsonic */; };
+		FEC6832D2B51E6970061C1D3 /* Pickup_coin 81 (1).wav in Resources */ = {isa = PBXBuildFile; fileRef = FEC6832C2B51E6970061C1D3 /* Pickup_coin 81 (1).wav */; };
+		FEC683302B51E6B30061C1D3 /* Pickup_coin 88.wav in Resources */ = {isa = PBXBuildFile; fileRef = FEC6832E2B51E6B30061C1D3 /* Pickup_coin 88.wav */; };
+		FEC683312B51E6B30061C1D3 /* Pickup_coin 89.wav in Resources */ = {isa = PBXBuildFile; fileRef = FEC6832F2B51E6B30061C1D3 /* Pickup_coin 89.wav */; };
+		FEC683332B51E76F0061C1D3 /* Random 188.wav in Resources */ = {isa = PBXBuildFile; fileRef = FEC683322B51E76E0061C1D3 /* Random 188.wav */; };
+		FEC683352B51E83C0061C1D3 /* Blip_select 22.wav in Resources */ = {isa = PBXBuildFile; fileRef = FEC683342B51E83C0061C1D3 /* Blip_select 22.wav */; };
 		FEEEA5872B15667900503680 /* Evolution_SimulatorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEEEA5862B15667900503680 /* Evolution_SimulatorApp.swift */; };
 		FEEEA5892B15667900503680 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEEEA5882B15667900503680 /* ContentView.swift */; };
 		FEEEA58B2B15667B00503680 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FEEEA58A2B15667B00503680 /* Assets.xcassets */; };
@@ -29,6 +34,11 @@
 		FEC683152B5096B10061C1D3 /* eat.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = eat.mp3; sourceTree = "<group>"; };
 		FEC683172B5099BE0061C1D3 /* drop_002.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = drop_002.mp3; sourceTree = "<group>"; };
 		FEC683192B5099D60061C1D3 /* glass_002.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = glass_002.mp3; sourceTree = "<group>"; };
+		FEC6832C2B51E6970061C1D3 /* Pickup_coin 81 (1).wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "Pickup_coin 81 (1).wav"; sourceTree = "<group>"; };
+		FEC6832E2B51E6B30061C1D3 /* Pickup_coin 88.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "Pickup_coin 88.wav"; sourceTree = "<group>"; };
+		FEC6832F2B51E6B30061C1D3 /* Pickup_coin 89.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "Pickup_coin 89.wav"; sourceTree = "<group>"; };
+		FEC683322B51E76E0061C1D3 /* Random 188.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "Random 188.wav"; sourceTree = "<group>"; };
+		FEC683342B51E83C0061C1D3 /* Blip_select 22.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "Blip_select 22.wav"; sourceTree = "<group>"; };
 		FEEEA5832B15667900503680 /* Evolution Simulator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Evolution Simulator.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		FEEEA5862B15667900503680 /* Evolution_SimulatorApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Evolution_SimulatorApp.swift; sourceTree = "<group>"; };
 		FEEEA5882B15667900503680 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -86,6 +96,11 @@
 				FEC683132B4F9B1F0061C1D3 /* GeometryStuff.swift */,
 				FEEEA58A2B15667B00503680 /* Assets.xcassets */,
 				FEC683192B5099D60061C1D3 /* glass_002.mp3 */,
+				FEC6832C2B51E6970061C1D3 /* Pickup_coin 81 (1).wav */,
+				FEC6832E2B51E6B30061C1D3 /* Pickup_coin 88.wav */,
+				FEC6832F2B51E6B30061C1D3 /* Pickup_coin 89.wav */,
+				FEC683342B51E83C0061C1D3 /* Blip_select 22.wav */,
+				FEC683322B51E76E0061C1D3 /* Random 188.wav */,
 				FEC683172B5099BE0061C1D3 /* drop_002.mp3 */,
 				FEC683152B5096B10061C1D3 /* eat.mp3 */,
 				FEEEA58C2B15667B00503680 /* Preview Content */,
@@ -165,11 +180,16 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FEC683332B51E76F0061C1D3 /* Random 188.wav in Resources */,
 				FEC683182B5099BE0061C1D3 /* drop_002.mp3 in Resources */,
+				FEC683302B51E6B30061C1D3 /* Pickup_coin 88.wav in Resources */,
 				FEC683162B5096B10061C1D3 /* eat.mp3 in Resources */,
+				FEC683352B51E83C0061C1D3 /* Blip_select 22.wav in Resources */,
+				FEC683312B51E6B30061C1D3 /* Pickup_coin 89.wav in Resources */,
 				FEEEA58E2B15667B00503680 /* Preview Assets.xcassets in Resources */,
 				FEEEA58B2B15667B00503680 /* Assets.xcassets in Resources */,
 				FEC6831A2B5099D60061C1D3 /* glass_002.mp3 in Resources */,
+				FEC6832D2B51E6970061C1D3 /* Pickup_coin 81 (1).wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
