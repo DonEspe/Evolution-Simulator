@@ -9,7 +9,7 @@ import SwiftUI
 import Charts
 import Subsonic
 
-let playSize = CGSize(width: 330, height: 310)
+let playSize = CGSize(width: 380, height: 310)
 let buffer = CGFloat(20.0)
 let strideBy = 6.0
 let testing = false
@@ -94,7 +94,7 @@ struct ContentView: View {
                 Toggle("Show Sight", isOn: $showSightLines)
             }
 
-            ZStack {
+            ZStack { //}(alignment: .topLeading) {
                 ForEach(colony) { bug in
                     if bug.alive {
                         if showHealth {
@@ -128,6 +128,7 @@ struct ContentView: View {
                                 .rotationEffect(Angle(radians: bug.trueHeading()), anchor: .center)
                                 .foregroundColor(.blue.opacity(0.5))
                                 .position(x: bug.position.x , y: bug.position.y)
+
                         }
 
                         if bug.seeOnlyAhead && bug.moveTowardLeaf && showSightLines {
@@ -135,7 +136,7 @@ struct ContentView: View {
                                 .frame(width: 2, height: 40, alignment: .top)
                                 .padding(.bottom, 40)
                                 .rotationEffect(Angle(radians: bug.trueHeading() - (bug.sightAngle / 2)), anchor: .center)
-                                .position(x: bug.position.x , y: bug.position.y)
+                                .position(x: bug.position.x, y: bug.position.y)
                                 .foregroundColor(.green.opacity(0.5))
 
                             Rectangle()
@@ -143,7 +144,7 @@ struct ContentView: View {
                                 .padding(.bottom, (40))
                                 .rotationEffect(Angle(radians: bug.trueHeading() + (bug.sightAngle / 2)), anchor: .center)
                                 .foregroundColor(.green.opacity(0.5))
-                                .position(x: bug.position.x , y: bug.position.y)
+                                .position(x: bug.position.x, y: bug.position.y)
                         }
 // put white circle for parent bugs
                         Circle()
@@ -179,23 +180,19 @@ struct ContentView: View {
 
                 Rectangle()
                     .stroke(lineWidth: 2)
-                    .frame(width: playSize.width + buffer, height: playSize.height + buffer)
-                    .position(CGPoint(x: buffer + (playSize.width) / 2, y: buffer + (playSize.height) / 2))
-
             }
             .animation(.linear, value: colony)
+            .frame(width: playSize.width, height: playSize.height)
 
             switch secondaryView {
                 case .bug:
-                    VStack {
-                        Spacer()
-                            .frame(height: 20)
+                    VStack(alignment: .center, spacing: 0) {
                         Text("Clicked on:")
                             .font(.title)
                             .fontWeight(.bold)
+
                         if let showBug = findBug(withId: tappedBug, in: colony) {
                             let displayBug = colony[showBug]
-
                             HStack {
                                 Text("Color: \(displayBug.color.description.capitalized)")
                                 Spacer()
@@ -231,9 +228,7 @@ struct ContentView: View {
                             if displayBug.seeOnlyAhead {
                                 Text("Bug can only see ahead")
                             }
-                            //                        Text("Bug Finds Closest Leaf: \(displayBug.findClosest.description)")
 
-                            //                        Text("Bug Changes Speed: \(displayBug.changeSpeed.description)")
                             Text("Leaves Collected: \(displayBug.leavesCollected)")
                             HStack {
                                 Text("Moves: \(displayBug.moves)\(displayBug.moves >= (records.last?.averageMoves ?? 0) ? "*":""  )")
@@ -248,12 +243,12 @@ struct ContentView: View {
                             Spacer()
 
                         } else {
-                            Spacer()
                             Text("No bug selected.")
                                 .fontWeight(.semibold)
-                            Spacer()
+                                .padding(.top, 20)
                             Text("Select a different bug.")
                                 .fontWeight(.bold)
+                                .padding(.top, 10)
                             Spacer()
                         }
                         HStack {
@@ -267,14 +262,11 @@ struct ContentView: View {
                         }
                         .padding(.horizontal)
                     }
-                    .font(.subheadline)//                    .onTapGesture {
-//                        secondaryView = .generations
-//                        //                        showingPopover = false
-//                    }
+                    .font(.subheadline)
+
                 case .generations:
                     VStack(alignment: .center, spacing: 0) {
-                        Spacer()
-                            .frame(height: 40)
+
                         Text("Records:")
                             .font(.title)
                             .fontWeight(.bold)
@@ -294,10 +286,11 @@ struct ContentView: View {
                     .padding(.horizontal)
                 case .graph:
                     VStack(alignment: .center, spacing: 0) {
-                        Spacer()
-                            .frame(height: 30)
+                        Text("Chart View:")
+                            .font(.title)
+                            .fontWeight(.bold)
+
                         ChartView(records: records)
-                            .frame(height: 230)
                             .padding()
                             .border(.blue.opacity(0.6))
                     }
@@ -321,13 +314,10 @@ struct ContentView: View {
                 return
             }
 
-            //            if colony.isEmpty {
             if numberAlive() == 0 {
                 print("new generation")
 
                 NewGenSound.play()
-
-                //MARK: Collect top bugs and allow to move to new generation
 
                 var survivedBugs = [Bug]()
 
@@ -436,7 +426,6 @@ struct ContentView: View {
                     records[generation - 1].bugsCollectedLeaves += 1
                 }
                 leaves.remove(at: foundLeafIndex)
-                //TODO: Play eat sound...
                 eatSound.play()
             }
 
@@ -457,7 +446,6 @@ struct ContentView: View {
             if numberAlive() == 1 {  //colony.count
                 records[generation - 1].lastCouldSee = colony[index].moveTowardLeaf
             }
-            //            colony.remove(at: index)
         }
     }
 
@@ -497,8 +485,8 @@ struct ContentView: View {
         spawnLeafSound.play()
         for _ in 0...number - 1 {
             let leaf = Leaf(position: CGPoint(
-                x: CGFloat.random(in: (buffer)...(playSize.width + buffer)),
-                y: CGFloat.random(in: (buffer)...(playSize.height + buffer))))
+                x: CGFloat.random(in: (buffer)...(playSize.width - buffer)),
+                y: CGFloat.random(in: (buffer)...(playSize.height - buffer))))
             leaves.append(leaf)
         }
         return leaves
@@ -771,26 +759,33 @@ struct ContentView: View {
         tempBug.position.y += tempBug.speed.dy
 
         // Check if in borders declared at top of file.
-        if tempBug.position.x > playSize.width + buffer {
+        if tempBug.position.x > playSize.width - 8{//}+ buffer {
             tempBug.speed.dx = -tempBug.speed.dx
-            tempBug.position.x = playSize.width + buffer - 3
+//            tempBug.position.x = playSize.width + buffer - 3
+            tempBug.position.x = playSize.width - 8
+
         }
 
-        if tempBug.position.x < buffer {
+        if tempBug.position.x < 8 {//} buffer {
             tempBug.speed.dx = -tempBug.speed.dx
-            tempBug.position.x = buffer + 3
+//            tempBug.position.x = buffer + 3
+            tempBug.position.x = 8
         }
 
-        if tempBug.position.y > playSize.height + buffer {
+        if tempBug.position.y > playSize.height - 8 { //}+ buffer {
             tempBug.speed.dy = -tempBug.speed.dy
-            tempBug.position.y = playSize.height + buffer - 3
+//            tempBug.position.y = playSize.height + buffer - 3
+            tempBug.position.y = playSize.height - 8
+
         }
 
-        if tempBug.position.y < buffer {
+        if tempBug.position.y < 8 { //buffer {
             tempBug.speed.dy = -tempBug.speed.dy
-            tempBug.position.y = buffer + 3
+//            tempBug.position.y = buffer + 3
+            tempBug.position.y = 8
+
         }
-        if abs(tempBug.trueHeading() - bug.trueHeading()) < .pi / 4 {
+        if abs(tempBug.trueHeading() - bug.trueHeading()) < .pi / 2 {
             tempBug.previousChange = CGVector(dx: tempBug.speed.dx - bug.speed.dx, dy: tempBug.speed.dy - bug.speed.dy)
         } else {
             tempBug.previousChange = .zero
