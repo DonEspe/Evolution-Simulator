@@ -261,9 +261,17 @@ struct ContentView: View {
                         Text("Records:")
                             .font(.title)
                             .fontWeight(.bold)
-                        List(records) { record in
-                            GenerationView(record: record)
+                        ScrollViewReader { proxy in
+                            List(records) { record in
+                                GenerationView(record: record)
+                                    .id(record.id)
+                            }
+                            .onAppear {
+                                proxy.scrollTo(records.last?.id ?? nil)
                         }
+
+                    }
+
                     }
 
                 case .graph:
