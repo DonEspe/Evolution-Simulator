@@ -14,10 +14,10 @@ let buffer = CGFloat(20.0)
 let strideBy = 6.0
 let testing = false
 
-enum SecondaryViewType {
-    case bug
-    case generations
-    case graph
+enum SecondaryViewType: String, CaseIterable {
+    case graph = "Chart View"
+    case generations = "Generation View"
+    case bug = "Bug View"
 }
 
 struct ContentView: View {
@@ -251,16 +251,7 @@ struct ContentView: View {
                                 .padding(.top, 10)
                             Spacer()
                         }
-                        HStack {
-                            Button("Generation View") {
-                                secondaryView = .generations
-                            }
-                            Spacer()
-                            Button("Chart View") {
-                                secondaryView = .graph
-                            }
-                        }
-                        .padding(.horizontal)
+
                     }
                     .font(.subheadline)
 
@@ -274,16 +265,7 @@ struct ContentView: View {
                             GenerationView(record: record)
                         }
                     }
-                    HStack {
-                        Button("Chart View") {
-                            secondaryView = .graph
-                        }
-                        Spacer()
-                        Button("Bug View") {
-                            secondaryView = .bug
-                        }
-                    }
-                    .padding(.horizontal)
+
                 case .graph:
                     VStack(alignment: .center, spacing: 0) {
                         Text("Chart View:")
@@ -294,17 +276,14 @@ struct ContentView: View {
                             .padding()
                             .border(.blue.opacity(0.6))
                     }
-                    HStack {
-                        Button("Generation View") {
-                            secondaryView = .generations
-                        }
-                        Spacer()
-                        Button("Bug View") {
-                            secondaryView = .bug
-                        }
-                    }
-                    .padding(.horizontal)
             }
+
+            Picker("View Style", selection: $secondaryView) {
+                ForEach(SecondaryViewType.allCases, id: \.self) {
+                    Text($0.rawValue)
+                }
+            }
+            .pickerStyle(.segmented)
         }
         .onAppear {
             // Do stuff when view first appears...
@@ -814,11 +793,9 @@ struct ChartView: View {
         let leavesMax = leavesTemp.max() ?? 1
 
         let bugsTemp = records.map { $0.totalBugs }
-        //        let bugsMin = bugsTemp.min() ?? 0
         let bugsMax =  bugsTemp.max() ?? 1
 
         let survivedTemp = records.map { $0.numberFromPrevious }
-        //        let survivedMin = survivedTemp.min() ?? 0
         let survivedMax = survivedTemp.max() ?? 5
 
 
@@ -826,8 +803,6 @@ struct ChartView: View {
         let useHighestMoves = highestTemp.max() ?? 100
 
         let useMax = Double(max(bugsMax, survivedMax, leavesMax, 15))
-
-        //                        let useHighestMoves = highestMoves > 0 ? highestMoves : 1
 
         Chart(records) {
             LineMark(
